@@ -548,11 +548,12 @@ function RosterEditor({team, onChange, accent}){
 
 function TickerList({events}){
   const ref = useRef(null);
-  useEffect(()=>{ if(ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [events]);
+  const safeEvents = Array.isArray(events) ? events.filter(e => e && e.type) : [];
+  useEffect(()=>{ if(ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [safeEvents.length]);
   return (
     <div className="ticker-panel" ref={ref}>
-      {events.length===0 && <div className="ticker-empty">Sin datos todavía.</div>}
-      {events.map((e,i)=>(
+      {safeEvents.length===0 && <div className="ticker-empty">Sin datos todavía.</div>}
+      {safeEvents.map((e,i)=>(
         <div className={"tick "+e.type} key={i}>
           <span className="min">{e.type==="half"? "" : e.minuto+"'"}</span>
           <span className="txt">{e.texto}</span>
@@ -602,10 +603,12 @@ function RapidoTab({clubs}){
     let i = 0;
     timerRef.current = setInterval(()=>{
       if(!mountedRef.current){ clearInterval(timerRef.current); return; }
-      if(i >= res.events.length){ clearInterval(timerRef.current); setPlaying(false); return; }
-      setVisibleEvents(prev => [...prev, res.events[i]]);
-      setClock(res.events[i].minuto);
+      if(!res.events || i >= res.events.length){ clearInterval(timerRef.current); setPlaying(false); return; }
+      const nextEvent = res.events[i];
       i++;
+      if(!nextEvent) return;
+      setVisibleEvents(prev => [...prev, nextEvent]);
+      setClock(nextEvent.minuto);
     }, 420);
   };
   const skipToEnd = () => {
@@ -613,7 +616,7 @@ function RapidoTab({clubs}){
     clearInterval(timerRef.current);
     setVisibleEvents(result.events); setClock(90); setPlaying(false);
   };
-  const liveScore = (()=>{ let a=0,b=0; visibleEvents.forEach(e=>{ if(e.type==="goal"){a=e.scoreA;b=e.scoreB;} }); return {a,b}; })();
+  const liveScore = (()=>{ let a=0,b=0; visibleEvents.forEach(e=>{ if(e && e.type==="goal"){a=e.scoreA;b=e.scoreB;} }); return {a,b}; })();
 
   return (
     <div>
