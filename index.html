@@ -26,19 +26,27 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:
-      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(31,107,58,0.25), transparent 60%),
-      var(--bg);
+    background:var(--bg);
     color:var(--chalk);
     font-family:'Inter',sans-serif;
     min-height:100vh;
+    position:relative;
+  }
+  /* fondo fijo: ya no se "oscurece" al scrollear porque no depende del alto de la página */
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% 0%, rgba(31,107,58,0.28), transparent 62%),
+      radial-gradient(ellipse 700px 500px at 100% 100%, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
   }
   ::selection{background:var(--turf-light);color:#08110C;}
-  .wrap{max-width:1040px;margin:0 auto;padding:28px 18px 80px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 18px 80px;}
 
   .masthead{
     display:flex; align-items:baseline; justify-content:space-between;
-    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:28px;
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:16px;
     flex-wrap:wrap; gap:8px;
   }
   .masthead h1{
@@ -48,22 +56,35 @@
   .masthead h1 span{color:var(--turf-light);}
   .masthead .tag{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.06em;}
 
+  .tabs{display:flex; gap:2px; margin-bottom:26px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab-btn{
+    background:transparent; border:none; color:var(--muted); cursor:pointer;
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;
+    font-size:13.5px; padding:10px 18px; border-bottom:2px solid transparent; transition:all .15s;
+  }
+  .tab-btn:hover{color:var(--chalk-dim);}
+  .tab-btn.active{color:var(--turf-light); border-bottom-color:var(--turf-light);}
+
+  .section-title{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.08em;
+    text-transform:uppercase; margin:26px 0 10px;
+  }
+
   .teams-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
   @media(max-width:720px){.teams-row{grid-template-columns:1fr;}}
 
-  .team-card{
-    background:var(--surface); border:1px solid var(--line); border-radius:2px;
-    padding:16px 18px; position:relative; overflow:hidden;
-  }
-  .team-card::before{
-    content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
-  }
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:2px; padding:16px 18px;}
+  .team-card{position:relative; overflow:hidden;}
+  .team-card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);}
   .team-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .team-name{
-    font-family:'Oswald',sans-serif; font-size:19px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.02em; color:var(--chalk);
-  }
+  .team-name{font-family:'Oswald',sans-serif; font-size:19px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em; color:var(--chalk);}
   .team-ovr{font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:13px;}
+
+  select{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--chalk);
+    font-family:'Inter',sans-serif; font-size:13.5px; padding:7px 10px; border-radius:2px; width:100%;
+  }
+
   .edit-btn{
     background:transparent; border:1px solid var(--line); color:var(--chalk-dim);
     font-family:'JetBrains Mono',monospace; font-size:11px; padding:5px 10px; cursor:pointer;
@@ -71,19 +92,21 @@
   }
   .edit-btn:hover{border-color:var(--accent); color:var(--chalk);}
 
-  .roster{margin-top:12px; border-top:1px solid var(--line); padding-top:10px;}
+  .roster{margin-top:12px; border-top:1px solid var(--line); padding-top:10px; overflow-x:auto;}
   .roster-row{
-    display:grid; grid-template-columns:26px 1fr 30px repeat(6,32px); gap:4px;
+    display:grid; grid-template-columns:26px 130px 34px repeat(6,32px) 26px; gap:4px;
     align-items:center; font-family:'JetBrains Mono',monospace; font-size:11px;
-    padding:3px 0; color:var(--chalk-dim);
+    padding:3px 0; color:var(--chalk-dim); min-width:420px;
   }
   .roster-row.head{color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:5px; margin-bottom:2px;}
   .roster-row input{
     width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--chalk);
     font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 3px; text-align:center; border-radius:2px;
   }
-  .roster-row .nm{color:var(--chalk); text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .roster-row .nm{color:var(--chalk); text-align:left;}
   .pos-tag{color:var(--accent); font-size:10px;}
+  .del-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+  .del-x:hover{color:var(--red);}
 
   .scoreboard{
     background:var(--surface); border:1px solid var(--line); border-radius:2px;
@@ -91,19 +114,10 @@
     margin-bottom:18px; flex-wrap:wrap;
   }
   .sb-team{text-align:center; min-width:140px;}
-  .sb-team .nm{
-    font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:16px; font-weight:600;
-    letter-spacing:0.02em;
-  }
-  .sb-score{
-    font-family:'Oswald',sans-serif; font-size:56px; font-weight:700; letter-spacing:0.03em;
-    display:flex; align-items:center; gap:14px; color:var(--chalk); line-height:1;
-  }
+  .sb-team .nm{font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:16px; font-weight:600; letter-spacing:0.02em;}
+  .sb-score{font-family:'Oswald',sans-serif; font-size:56px; font-weight:700; letter-spacing:0.03em; display:flex; align-items:center; gap:14px; color:var(--chalk); line-height:1;}
   .sb-score .dash{color:var(--muted); font-size:36px;}
-  .sb-clock{
-    font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--amber);
-    display:block; margin-top:4px; letter-spacing:0.05em;
-  }
+  .sb-clock{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--amber); display:block; margin-top:4px; letter-spacing:0.05em; text-align:center;}
 
   .controls{display:flex; justify-content:center; gap:10px; margin-bottom:24px; flex-wrap:wrap;}
   .btn-primary{
@@ -119,47 +133,72 @@
   }
   .btn-ghost:hover{border-color:var(--chalk-dim); color:var(--chalk);}
   .btn-ghost.active{border-color:var(--turf-light); color:var(--turf-light);}
+  .btn-ghost.small{padding:6px 10px; font-size:11px;}
 
-  .ticker-panel{
-    background:var(--surface); border:1px solid var(--line); border-radius:2px;
-    min-height:120px; max-height:420px; overflow-y:auto; padding:4px 0;
-  }
-  .ticker-empty{
-    padding:40px 20px; text-align:center; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:12px;
-  }
-  .tick{
-    display:flex; gap:12px; padding:9px 18px; border-bottom:1px solid var(--line);
-    animation:slideIn .25s ease-out;
-  }
+  .ticker-panel{background:var(--surface); border:1px solid var(--line); border-radius:2px; min-height:120px; max-height:420px; overflow-y:auto; padding:4px 0;}
+  .ticker-empty{padding:40px 20px; text-align:center; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:12px;}
+  .tick{display:flex; gap:12px; padding:9px 18px; border-bottom:1px solid var(--line); animation:slideIn .25s ease-out;}
   @keyframes slideIn{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);}}
-  .tick .min{
-    font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; color:var(--muted);
-    min-width:34px; flex-shrink:0;
-  }
+  .tick .min{font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; color:var(--muted); min-width:34px; flex-shrink:0;}
   .tick.goal .min{color:var(--amber);}
   .tick.card-y .min{color:#D9B34C;}
-  .tick.card-r .min{color:var(--red);}
   .tick .txt{font-size:13.5px; line-height:1.5; color:var(--chalk-dim);}
   .tick.goal .txt{color:var(--amber); font-weight:600;}
   .tick.half .txt{color:var(--chalk); font-style:italic;}
   .tick.half{background:var(--surface-2); justify-content:center; text-align:center;}
   .tick.half .min{display:none;}
 
-  .stats-panel{
-    display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:22px;
-  }
+  .stats-panel{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:22px;}
   @media(max-width:600px){.stats-panel{grid-template-columns:1fr;}}
   .stat-row{margin-bottom:12px;}
-  .stat-labels{
-    display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace;
-    font-size:11px; color:var(--chalk-dim); margin-bottom:4px;
-  }
+  .stat-labels{display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--chalk-dim); margin-bottom:4px;}
   .stat-bar-wrap{display:flex; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
   .stat-bar-a{background:var(--turf-light);}
   .stat-bar-b{background:var(--amber);}
-  .stat-title{
-    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); text-align:center;
-    letter-spacing:0.08em; margin:22px 0 10px; text-transform:uppercase;
+  .stat-title{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); text-align:center; letter-spacing:0.08em; margin:22px 0 10px; text-transform:uppercase;}
+
+  .club-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; margin-bottom:14px;}
+  .club-chip{
+    border:1px solid var(--line); background:var(--surface); padding:9px 12px; border-radius:2px; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size:12.5px; display:flex; align-items:center; gap:8px; transition:all .12s;
+  }
+  .club-chip .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .club-chip.selected{border-color:var(--turf-light); background:var(--surface-2); color:var(--chalk);}
+  .club-chip:not(.selected){color:var(--chalk-dim);}
+
+  table.std{width:100%; border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:12.5px;}
+  table.std th, table.std td{padding:7px 6px; text-align:center; border-bottom:1px solid var(--line);}
+  table.std th{color:var(--muted); font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em;}
+  table.std td.club-cell{text-align:left; color:var(--chalk); font-family:'Inter',sans-serif; font-size:13px;}
+  table.std tr:first-child td{color:var(--turf-light);}
+  table.std td.pts{color:var(--amber); font-weight:700;}
+
+  .fixture-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:2px; margin-bottom:6px; flex-wrap:wrap;
+  }
+  .fixture-teams{font-family:'Inter',sans-serif; font-size:13.5px; display:flex; align-items:center; gap:10px;}
+  .fixture-score{font-family:'Oswald',sans-serif; font-weight:700; font-size:16px; color:var(--chalk); min-width:50px; text-align:center;}
+  .fixture-score.pending{color:var(--muted); font-size:12px; font-family:'JetBrains Mono',monospace; font-weight:400;}
+
+  .bracket-round{margin-bottom:20px;}
+  .bracket-round h4{font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; letter-spacing:0.04em; color:var(--amber); margin:0 0 8px;}
+  .champion-banner{
+    text-align:center; padding:26px; background:linear-gradient(180deg, rgba(232,163,61,0.12), transparent);
+    border:1px solid var(--amber); border-radius:2px; margin-top:16px;
+  }
+  .champion-banner .trophy{font-size:30px;}
+  .champion-banner .name{font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; text-transform:uppercase; color:var(--amber); margin-top:4px;}
+
+  .add-club-btn{
+    border:1px dashed var(--line); background:transparent; color:var(--chalk-dim); cursor:pointer;
+    font-family:'JetBrains Mono',monospace; font-size:12px; padding:14px; width:100%; border-radius:2px; margin-top:6px;
+  }
+  .add-club-btn:hover{border-color:var(--turf-light); color:var(--chalk);}
+  .field-inline{display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .field-inline input[type=text]{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--chalk); font-family:'Inter',sans-serif;
+    font-size:14px; padding:6px 9px; border-radius:2px; flex:1;
   }
 </style>
 </head>
@@ -168,40 +207,47 @@
 <script type="text/babel">
 const {useState, useRef, useEffect} = React;
 
-/* ---------- Datos base ---------- */
+/* ================= DATOS BASE ================= */
 const POSICIONES = ["POR","LI","DFC","DFC","LD","MCD","MC","MCO","EI","ED","DC"];
+const PALETA = ["#3FA35B","#E8A33D","#4E8FD8","#C4462B","#9B6FD1","#3FB6A3","#D9527A","#8FA33F"];
+
+const SURNAME_POOL = [
+  "Marano","Bezares","Cintra","Follonier","Aguilaz","Delvento","Miraz","Cuartero","Solvez","Tarrago","Iberrí",
+  "Korvac","Etxarri","Bramante","Fossey","Undurraga","Reznik","Palombo","Sáez","Vintar","Achucarro","Dolman",
+  "Rebollar","Zambrini","Costigan","Uranga","Ferlaino","Brizuela","Montaner","Casals","Vergiu","Otxandio","Petrucci",
+  "Salaverri","Comellas","Yagüe","Bonfante","Larralde","Kessel","Mirasol","Verchenko","Aristizábal","Trevino","Panizza",
+  "Elizalde","Bregante","Sorrentino","Uzcanga","Delacroix","Winneke","Casabianca","Iturbide","Marcusso","Estivariz","Golini",
+  "Anzoátegui","Berruet","Franzoni","Kowalik","Salzedo","Bregado","Villaraza","Costanzo","Iparraguirre","Melloni","Dravec",
+  "Zoraida","Barletta","Umbelina","Rescala","Foncea","Bramanti","Solórzano","Vanterpool","Cazorla","Neumann","Tarabini",
+  "Guiral","Belcastro","Ondarza","Vilaró","Krivenko","Marabotto","Salguero","Fantín","Ostrander","Baldacci"
+];
+function namesForClub(index){ return SURNAME_POOL.slice(index*11, index*11+11); }
+
+const CLUB_NOMBRES = [
+  "Real Bahía CF","Unión Atlético Norte","Deportivo Almendra","Sporting Roquetas",
+  "Club Vieja Guardia","Atlético del Faro","Ferroviario Central","Estrella del Sur"
+];
 
 function mkPlayer(nombre, pos, base){
   const j = (v,spread=8)=> Math.max(35, Math.min(96, v + Math.round((Math.random()*spread*2)-spread)));
-  return {
-    nombre, pos,
-    ritmo:j(base), tiro:j(base), pase:j(base), regate:j(base), defensa:j(base), fisico:j(base),
-  };
+  return {nombre, pos, ritmo:j(base), tiro:j(base), pase:j(base), regate:j(base), defensa:j(base), fisico:j(base)};
 }
-function overall(p){
-  return Math.round((p.ritmo+p.tiro+p.pase+p.regate+p.defensa+p.fisico)/6);
-}
-function teamOverall(team){
-  return Math.round(team.players.reduce((s,p)=>s+overall(p),0)/team.players.length);
-}
+function overall(p){ return Math.round((p.ritmo+p.tiro+p.pase+p.regate+p.defensa+p.fisico)/6); }
+function teamOverall(team){ return Math.round(team.players.reduce((s,p)=>s+overall(p),0)/team.players.length); }
 
-function buildTeam(nombre, color, base, nombresJugadores){
+function buildClub(id, nombre, color, base, nombresJugadores){
   const players = POSICIONES.map((pos,i)=> mkPlayer(nombresJugadores[i], pos, base));
-  return {nombre, color, players};
+  return {id, nombre, color, players};
 }
 
-const NOMBRES_A = ["Marano","Bezares","Cintra","Follonier","Aguilaz","Delvento","Miraz","Cuartero","Solvez","Tarrago","Iberrí"];
-const NOMBRES_B = ["Korvac","Etxarri","Bramante","Fossey","Undurraga","Reznik","Palombo","Sáez","Vintar","Achucarro","Dolman"];
+function initialClubs(){
+  return CLUB_NOMBRES.map((n,i)=> buildClub(i, n, PALETA[i%PALETA.length], 60+Math.round(Math.random()*14), namesForClub(i)));
+}
 
-const INITIAL_A = buildTeam("Real Bahía CF", "#3FA35B", 68, NOMBRES_A);
-const INITIAL_B = buildTeam("Unión Atlético Norte", "#E8A33D", 66, NOMBRES_B);
-
-/* ---------- Motor de simulación ---------- */
+/* ================= MOTOR DE SIMULACIÓN ================= */
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function rnd(){ return Math.random(); }
-function fmt(tpl, vars){
-  return tpl.replace(/\{(\w+)\}/g, (_,k)=> vars[k]!==undefined? vars[k] : `{${k}}`);
-}
+function fmt(tpl, vars){ return tpl.replace(/\{(\w+)\}/g, (_,k)=> vars[k]!==undefined? vars[k] : `{${k}}`); }
 
 const FRASES = {
   buildupFail: [
@@ -254,19 +300,17 @@ const FRASES = {
     "Corte duro de {py}, el árbitro marca falta.",
   ],
   yellow: "El árbitro amonesta a {py} con tarjeta amarilla.",
-  red: "¡Tarjeta roja! Expulsan a {py}.",
 };
 
 function jugadorAl(team, poses){
   const cand = team.players.filter(p=>poses.includes(p.pos));
   return cand.length? pick(cand) : pick(team.players);
 }
-
 function teamStrength(team){
   const atk = team.players.filter(p=>["DC","EI","ED","MCO"].includes(p.pos));
   const mid = team.players.filter(p=>["MCD","MC","MCO","LI","LD"].includes(p.pos));
   const def = team.players.filter(p=>["DFC","LI","LD","MCD"].includes(p.pos));
-  const gk = team.players.find(p=>p.pos==="POR");
+  const gk = team.players.find(p=>p.pos==="POR") || team.players[0];
   const avg = (arr,f)=> arr.length? arr.reduce((s,p)=>s+f(p),0)/arr.length : 55;
   return {
     ataque: avg(atk, p=>(p.tiro+p.regate+p.pase+p.ritmo)/4),
@@ -279,17 +323,15 @@ function teamStrength(team){
 function simulateMatch(teamA, teamB){
   const events = [];
   const stats = {
-    A:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0,rojas:0},
-    B:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0,rojas:0},
+    A:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0},
+    B:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0},
   };
   let score = {A:0,B:0};
   const sA = teamStrength(teamA), sB = teamStrength(teamB);
-
   const nJugadas = 26 + Math.floor(rnd()*6);
   let minutos = [];
   for(let i=0;i<nJugadas;i++) minutos.push(3 + Math.floor(rnd()*86));
   minutos.sort((a,b)=>a-b);
-
   let halftimeAdded = false;
 
   minutos.forEach((minuto)=>{
@@ -328,7 +370,7 @@ function simulateMatch(teamA, teamB){
       if(rnd()<0.3){
         stats[X].corners++;
         events.push({minuto, type:"neutral", texto: fmt(FRASES.corner,{X:Xteam.nombre})});
-        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.cornerPlay),{px:px2.nombre, X:Xteam.nombre, Y:Yteam.nombre, gk:Yteam.players.find(p=>p.pos==="POR").nombre})});
+        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.cornerPlay),{px:px2.nombre, X:Xteam.nombre, Y:Yteam.nombre, gk:(Yteam.players.find(p=>p.pos==="POR")||Yteam.players[0]).nombre})});
       } else {
         events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.chanceStopped),{Y:Yteam.nombre, py:py.nombre})});
       }
@@ -343,7 +385,7 @@ function simulateMatch(teamA, teamB){
       return;
     }
     stats[X].tirosPuerta++;
-    const gk = Yteam.players.find(p=>p.pos==="POR");
+    const gk = Yteam.players.find(p=>p.pos==="POR") || Yteam.players[0];
     const saveProb = gk.defensa / (gk.defensa + shooter.tiro*0.95);
     if(rnd() < saveProb*0.75){
       events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.shotSaved), {gk:gk.nombre, px:shooter.nombre, X:Xteam.nombre})});
@@ -361,27 +403,26 @@ function simulateMatch(teamA, teamB){
   const totalPos = stats.A.posesion+stats.B.posesion || 1;
   stats.A.posesionPct = Math.round(stats.A.posesion/totalPos*100);
   stats.B.posesionPct = 100-stats.A.posesionPct;
-
   return {events, score, stats};
 }
 
-/* ---------- Componentes UI ---------- */
-function RosterEditor({team, setTeam, accent}){
+/* ================= COMPONENTES COMPARTIDOS ================= */
+function RosterEditor({team, onChange, accent}){
   const updateStat = (idx, field, val) => {
     const players = team.players.slice();
     players[idx] = {...players[idx], [field]: Math.max(1, Math.min(99, Number(val)||1))};
-    setTeam({...team, players});
+    onChange({...team, players});
   };
   const updateName = (idx, val) => {
     const players = team.players.slice();
     players[idx] = {...players[idx], nombre: val};
-    setTeam({...team, players});
+    onChange({...team, players});
   };
   return (
     <div className="roster">
       <div className="roster-row head">
         <span></span><span>Jugador</span><span>Pos</span>
-        <span>RIT</span><span>TIR</span><span>PAS</span><span>REG</span><span>DEF</span><span>FIS</span>
+        <span>RIT</span><span>TIR</span><span>PAS</span><span>REG</span><span>DEF</span><span>FIS</span><span></span>
       </div>
       {team.players.map((p,i)=>(
         <div className="roster-row" key={i}>
@@ -394,34 +435,31 @@ function RosterEditor({team, setTeam, accent}){
           <input value={p.regate} onChange={e=>updateStat(i,"regate",e.target.value)} />
           <input value={p.defensa} onChange={e=>updateStat(i,"defensa",e.target.value)} />
           <input value={p.fisico} onChange={e=>updateStat(i,"fisico",e.target.value)} />
+          <span></span>
         </div>
       ))}
     </div>
   );
 }
 
-function TeamCard({team, setTeam, accent, label}){
-  const [editing, setEditing] = useState(false);
+function TickerList({events}){
+  const ref = useRef(null);
+  useEffect(()=>{ if(ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [events]);
   return (
-    <div className="team-card" style={{"--accent":accent}}>
-      <div className="team-head">
-        <div>
-          <div className="team-name">{team.nombre}</div>
-          <div style={{fontSize:"10px", color:"var(--muted)", fontFamily:"'JetBrains Mono',monospace", marginTop:"2px"}}>{label}</div>
+    <div className="ticker-panel" ref={ref}>
+      {events.length===0 && <div className="ticker-empty">Sin datos todavía.</div>}
+      {events.map((e,i)=>(
+        <div className={"tick "+e.type} key={i}>
+          <span className="min">{e.type==="half"? "" : e.minuto+"'"}</span>
+          <span className="txt">{e.texto}</span>
         </div>
-        <div className="team-ovr" style={{color:accent}}>GRL {teamOverall(team)}</div>
-      </div>
-      <button className="edit-btn" onClick={()=>setEditing(!editing)}>
-        {editing? "▲ CERRAR EDICIÓN" : "✎ EDITAR PLANTILLA"}
-      </button>
-      {editing && <RosterEditor team={team} setTeam={setTeam} accent={accent} />}
+      ))}
     </div>
   );
 }
 
 function StatRow({label, a, b, maxOverride}){
-  const max = maxOverride || Math.max(a,b,1);
-  const pa = (a/ (a+b||1))*100;
+  const pa = (a/((a+b)||1))*100;
   const pb = 100-pa;
   return (
     <div className="stat-row">
@@ -434,115 +472,96 @@ function StatRow({label, a, b, maxOverride}){
   );
 }
 
-function App(){
-  const [teamA, setTeamA] = useState(INITIAL_A);
-  const [teamB, setTeamB] = useState(INITIAL_B);
+/* ================= TAB: PARTIDO RÁPIDO ================= */
+function RapidoTab({clubs}){
+  const [idA, setIdA] = useState(clubs[0].id);
+  const [idB, setIdB] = useState(clubs[1] ? clubs[1].id : clubs[0].id);
   const [result, setResult] = useState(null);
   const [visibleEvents, setVisibleEvents] = useState([]);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState("vivo"); // "vivo" | "instant"
+  const [speed, setSpeed] = useState("vivo");
   const [clock, setClock] = useState(0);
-  const tickerRef = useRef(null);
   const timerRef = useRef(null);
 
-  useEffect(()=>{
-    if(tickerRef.current) tickerRef.current.scrollTop = tickerRef.current.scrollHeight;
-  }, [visibleEvents]);
-
   useEffect(()=> ()=> clearInterval(timerRef.current), []);
+
+  const teamA = clubs.find(c=>c.id===idA) || clubs[0];
+  const teamB = clubs.find(c=>c.id===idB) || clubs[1] || clubs[0];
 
   const startMatch = () => {
     clearInterval(timerRef.current);
     const res = simulateMatch(teamA, teamB);
-    setResult(res);
-    setVisibleEvents([]);
-    setClock(0);
-    setPlaying(true);
-
-    if(speed==="instant"){
-      setVisibleEvents(res.events);
-      setClock(90);
-      setPlaying(false);
-      return;
-    }
-
+    setResult(res); setVisibleEvents([]); setClock(0); setPlaying(true);
+    if(speed==="instant"){ setVisibleEvents(res.events); setClock(90); setPlaying(false); return; }
     let i = 0;
     timerRef.current = setInterval(()=>{
-      if(i >= res.events.length){
-        clearInterval(timerRef.current);
-        setPlaying(false);
-        return;
-      }
+      if(i >= res.events.length){ clearInterval(timerRef.current); setPlaying(false); return; }
       setVisibleEvents(prev => [...prev, res.events[i]]);
       setClock(res.events[i].minuto);
       i++;
     }, 420);
   };
-
   const skipToEnd = () => {
     if(!result) return;
     clearInterval(timerRef.current);
-    setVisibleEvents(result.events);
-    setClock(90);
-    setPlaying(false);
+    setVisibleEvents(result.events); setClock(90); setPlaying(false);
   };
-
-  const liveScore = (() => {
-    let a=0,b=0;
-    visibleEvents.forEach(e=>{ if(e.type==="goal"){ a=e.scoreA; b=e.scoreB; } });
-    return {a,b};
-  })();
+  const liveScore = (()=>{ let a=0,b=0; visibleEvents.forEach(e=>{ if(e.type==="goal"){a=e.scoreA;b=e.scoreB;} }); return {a,b}; })();
 
   return (
-    <div className="wrap">
-      <div className="masthead">
-        <h1>MOTOR <span>// SIMULADOR</span></h1>
-        <div className="tag">MODO: PARTIDO RÁPIDO · MOTOR DE JUEGO v0.1</div>
-      </div>
-
+    <div>
       <div className="teams-row">
-        <TeamCard team={teamA} setTeam={setTeamA} accent="#3FA35B" label="LOCAL" />
-        <TeamCard team={teamB} setTeam={setTeamB} accent="#E8A33D" label="VISITANTE" />
+        <div className="card team-card" style={{"--accent":teamA.color}}>
+          <div className="team-head">
+            <div className="team-name">LOCAL</div>
+            <div className="team-ovr" style={{color:teamA.color}}>GRL {teamOverall(teamA)}</div>
+          </div>
+          <div className="field-inline">
+            <select value={idA} onChange={e=>setIdA(e.target.value)}>
+              {clubs.map(c=> <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="card team-card" style={{"--accent":teamB.color}}>
+          <div className="team-head">
+            <div className="team-name">VISITANTE</div>
+            <div className="team-ovr" style={{color:teamB.color}}>GRL {teamOverall(teamB)}</div>
+          </div>
+          <div className="field-inline">
+            <select value={idB} onChange={e=>setIdB(e.target.value)}>
+              {clubs.map(c=> <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="scoreboard">
-        <div className="sb-team"><div className="nm" style={{color:"#3FA35B"}}>{teamA.nombre}</div></div>
+        <div className="sb-team"><div className="nm" style={{color:teamA.color}}>{teamA.nombre}</div></div>
         <div>
-          <div className="sb-score">
-            <span>{liveScore.a}</span><span className="dash">—</span><span>{liveScore.b}</span>
-          </div>
-          <span className="sb-clock" style={{textAlign:"center", display:"block"}}>{clock>0? `${clock}'` : "00'"}</span>
+          <div className="sb-score"><span>{liveScore.a}</span><span className="dash">—</span><span>{liveScore.b}</span></div>
+          <span className="sb-clock">{clock>0? `${clock}'` : "00'"}</span>
         </div>
-        <div className="sb-team"><div className="nm" style={{color:"#E8A33D"}}>{teamB.nombre}</div></div>
+        <div className="sb-team"><div className="nm" style={{color:teamB.color}}>{teamB.nombre}</div></div>
       </div>
 
       <div className="controls">
-        <button className="btn-primary" onClick={startMatch} disabled={playing}>
+        <button className="btn-primary" onClick={startMatch} disabled={playing || idA===idB}>
           {playing? "Simulando..." : "▶ SIMULAR PARTIDO"}
         </button>
         <button className={"btn-ghost"+(speed==="vivo"?" active":"")} onClick={()=>setSpeed("vivo")}>EN VIVO</button>
         <button className={"btn-ghost"+(speed==="instant"?" active":"")} onClick={()=>setSpeed("instant")}>INSTANTÁNEO</button>
         {playing && speed==="vivo" && <button className="btn-ghost" onClick={skipToEnd}>SALTAR AL FINAL</button>}
       </div>
+      {idA===idB && <div style={{textAlign:"center", color:"var(--muted)", fontSize:12, marginBottom:16, fontFamily:"'JetBrains Mono',monospace"}}>Elegí dos clubes distintos para simular.</div>}
 
-      <div className="ticker-panel" ref={tickerRef}>
-        {visibleEvents.length===0 && (
-          <div className="ticker-empty">La transmisión del partido aparecerá acá minuto a minuto.</div>
-        )}
-        {visibleEvents.map((e,i)=>(
-          <div className={"tick "+e.type} key={i}>
-            <span className="min">{e.type==="half"? "" : e.minuto+"'"}</span>
-            <span className="txt">{e.texto}</span>
-          </div>
-        ))}
-      </div>
+      <TickerList events={visibleEvents} />
 
       {result && visibleEvents.length===result.events.length && (
         <>
           <div className="stat-title">Estadísticas del partido</div>
           <div className="stats-panel">
             <div>
-              <StatRow label="POSESIÓN %" a={result.stats.A.posesionPct} b={result.stats.B.posesionPct} maxOverride={100} />
+              <StatRow label="POSESIÓN %" a={result.stats.A.posesionPct} b={result.stats.B.posesionPct} />
               <StatRow label="TIROS" a={result.stats.A.tiros} b={result.stats.B.tiros} />
               <StatRow label="TIROS A PUERTA" a={result.stats.A.tirosPuerta} b={result.stats.B.tirosPuerta} />
             </div>
@@ -554,6 +573,367 @@ function App(){
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ================= TAB: LIGA ================= */
+function genRoundRobin(ids){
+  // método del círculo; agrega "bye" (null) si es impar
+  let arr = ids.slice();
+  if(arr.length % 2 !== 0) arr.push(null);
+  const n = arr.length;
+  const rounds = [];
+  for(let r=0;r<n-1;r++){
+    const round = [];
+    for(let i=0;i<n/2;i++){
+      const a = arr[i], b = arr[n-1-i];
+      if(a!==null && b!==null) round.push([a,b]);
+    }
+    rounds.push(round);
+    arr.splice(1,0,arr.pop());
+  }
+  return rounds;
+}
+
+function LigaTab({clubs}){
+  const [selected, setSelected] = useState(clubs.slice(0,6).map(c=>c.id));
+  const [fixture, setFixture] = useState(null); // array de rounds -> [ [ [idA,idB], ... ] ]
+  const [results, setResults] = useState({}); // key "r-i" -> {score, events, stats}
+  const [matchday, setMatchday] = useState(0);
+  const [detail, setDetail] = useState(null);
+
+  const toggle = (id) => {
+    setSelected(s=> s.includes(id) ? s.filter(x=>x!==id) : (s.length<8? [...s,id] : s));
+  };
+
+  const crearLiga = () => {
+    if(selected.length < 3) return;
+    setFixture(genRoundRobin(selected));
+    setResults({});
+    setMatchday(0);
+    setDetail(null);
+  };
+
+  const clubById = (id)=> clubs.find(c=>c.id===id);
+
+  const simularFecha = (idx) => {
+    const round = fixture[idx];
+    const nuevos = {...results};
+    round.forEach(([a,b], i)=>{
+      const key = idx+"-"+i;
+      if(nuevos[key]) return;
+      const res = simulateMatch(clubById(a), clubById(b));
+      nuevos[key] = res;
+    });
+    setResults(nuevos);
+    if(idx===matchday) setMatchday(Math.min(idx+1, fixture.length));
+  };
+
+  const simularTodo = () => {
+    const nuevos = {...results};
+    fixture.forEach((round, idx)=>{
+      round.forEach(([a,b], i)=>{
+        const key = idx+"-"+i;
+        if(!nuevos[key]) nuevos[key] = simulateMatch(clubById(a), clubById(b));
+      });
+    });
+    setResults(nuevos);
+    setMatchday(fixture.length);
+  };
+
+  const standings = (()=>{
+    if(!fixture) return [];
+    const table = {};
+    selected.forEach(id=>{ table[id] = {id, pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0}; });
+    fixture.forEach((round, idx)=>{
+      round.forEach(([a,b], i)=>{
+        const res = results[idx+"-"+i];
+        if(!res) return;
+        const ta = table[a], tb = table[b];
+        ta.pj++; tb.pj++;
+        ta.gf += res.score.A; ta.gc += res.score.B;
+        tb.gf += res.score.B; tb.gc += res.score.A;
+        if(res.score.A > res.score.B){ ta.pg++; ta.pts+=3; tb.pp++; }
+        else if(res.score.A < res.score.B){ tb.pg++; tb.pts+=3; ta.pp++; }
+        else { ta.pe++; tb.pe++; ta.pts++; tb.pts++; }
+      });
+    });
+    return Object.values(table).sort((x,y)=> y.pts-x.pts || (y.gf-y.gc)-(x.gf-x.gc) || y.gf-x.gf);
+  })();
+
+  const totalPartidos = fixture ? fixture.reduce((s,r)=>s+r.length,0) : 0;
+  const jugados = Object.keys(results).length;
+  const ligaCompleta = fixture && jugados===totalPartidos && totalPartidos>0;
+
+  return (
+    <div>
+      {!fixture && (
+        <>
+          <div className="section-title">Elegí de 3 a 8 clubes</div>
+          <div className="club-grid">
+            {clubs.map(c=>(
+              <div key={c.id} className={"club-chip"+(selected.includes(c.id)?" selected":"")} onClick={()=>toggle(c.id)}>
+                <span className="dot" style={{background:c.color}}></span>{c.nombre}
+              </div>
+            ))}
+          </div>
+          <div className="controls">
+            <button className="btn-primary" onClick={crearLiga} disabled={selected.length<3}>CREAR LIGA ({selected.length} clubes)</button>
+          </div>
+        </>
+      )}
+
+      {fixture && (
+        <>
+          <div className="controls">
+            <button className="btn-ghost" onClick={()=>{setFixture(null); setResults({});}}>← NUEVA LIGA</button>
+            {matchday<fixture.length && <button className="btn-primary" onClick={()=>simularFecha(matchday)}>SIMULAR FECHA {matchday+1}</button>}
+            {!ligaCompleta && <button className="btn-ghost" onClick={simularTodo}>SIMULAR TEMPORADA COMPLETA</button>}
+          </div>
+
+          <div className="section-title">Tabla de posiciones</div>
+          <table className="std">
+            <thead><tr><th>#</th><th style={{textAlign:"left"}}>Club</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
+            <tbody>
+              {standings.map((row,i)=>(
+                <tr key={row.id}>
+                  <td>{i+1}</td>
+                  <td className="club-cell"><span className="dot" style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:clubById(row.id).color,marginRight:6}}></span>{clubById(row.id).nombre}</td>
+                  <td>{row.pj}</td><td>{row.pg}</td><td>{row.pe}</td><td>{row.pp}</td>
+                  <td>{row.gf}</td><td>{row.gc}</td><td>{row.gf-row.gc}</td>
+                  <td className="pts">{row.pts}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {ligaCompleta && (
+            <div className="champion-banner">
+              <div className="trophy">🏆</div>
+              <div className="name">{clubById(standings[0].id).nombre}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"var(--muted)", marginTop:4}}>CAMPEÓN DE LIGA</div>
+            </div>
+          )}
+
+          <div className="section-title">Fixture</div>
+          {fixture.map((round, idx)=>(
+            <div key={idx} style={{marginBottom:14}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"var(--muted)", marginBottom:6}}>FECHA {idx+1}</div>
+              {round.map(([a,b], i)=>{
+                const res = results[idx+"-"+i];
+                const dKey = idx+"-"+i;
+                return (
+                  <div key={i}>
+                    <div className="fixture-row">
+                      <div className="fixture-teams">
+                        <span style={{color:clubById(a).color}}>{clubById(a).nombre}</span>
+                        <span style={{color:"var(--muted)"}}>vs</span>
+                        <span style={{color:clubById(b).color}}>{clubById(b).nombre}</span>
+                      </div>
+                      {res ? (
+                        <div style={{display:"flex", alignItems:"center", gap:10}}>
+                          <span className="fixture-score">{res.score.A} - {res.score.B}</span>
+                          <button className="btn-ghost small" onClick={()=>setDetail(detail===dKey?null:dKey)}>{detail===dKey? "OCULTAR":"VER RELATO"}</button>
+                        </div>
+                      ) : <span className="fixture-score pending">pendiente</span>}
+                    </div>
+                    {detail===dKey && res && <div style={{marginBottom:10}}><TickerList events={res.events} /></div>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ================= TAB: COPA ================= */
+function CopaTab({clubs}){
+  const [size, setSize] = useState(4);
+  const [selected, setSelected] = useState([]);
+  const [bracket, setBracket] = useState(null); // array de rondas -> [{a,b,res}]
+  const [detail, setDetail] = useState(null);
+
+  const toggle = (id) => {
+    setSelected(s=>{
+      if(s.includes(id)) return s.filter(x=>x!==id);
+      if(s.length>=size) return s;
+      return [...s,id];
+    });
+  };
+
+  const clubById = (id)=> clubs.find(c=>c.id===id);
+
+  const crearCopa = () => {
+    if(selected.length !== size) return;
+    const mezcla = selected.slice().sort(()=>Math.random()-0.5);
+    const primeraRonda = [];
+    for(let i=0;i<mezcla.length;i+=2) primeraRonda.push({a:mezcla[i], b:mezcla[i+1], res:null});
+    setBracket([primeraRonda]);
+    setDetail(null);
+  };
+
+  const simularRonda = (idx) => {
+    const ronda = bracket[idx].map(m=>{
+      if(m.res) return m;
+      return {...m, res: simulateMatch(clubById(m.a), clubById(m.b))};
+    });
+    const nuevoBracket = bracket.slice();
+    nuevoBracket[idx] = ronda;
+
+    if(ronda.every(m=>m.res) && ronda.length>1 && !bracket[idx+1]){
+      const ganadores = ronda.map(m=> m.res.score.A>=m.res.score.B? m.a : m.b);
+      const siguiente = [];
+      for(let i=0;i<ganadores.length;i+=2) siguiente.push({a:ganadores[i], b:ganadores[i+1], res:null});
+      nuevoBracket.push(siguiente);
+    }
+    setBracket(nuevoBracket);
+  };
+
+  const campeon = (()=>{
+    if(!bracket) return null;
+    const ultima = bracket[bracket.length-1];
+    if(ultima.length===1 && ultima[0].res){
+      return ultima[0].res.score.A>=ultima[0].res.score.B? ultima[0].a : ultima[0].b;
+    }
+    return null;
+  })();
+
+  return (
+    <div>
+      {!bracket && (
+        <>
+          <div className="section-title">Formato de copa</div>
+          <div className="controls">
+            <button className={"btn-ghost"+(size===4?" active":"")} onClick={()=>{setSize(4); setSelected([]);}}>CUARTOS (4 clubes)</button>
+            <button className={"btn-ghost"+(size===8?" active":"")} onClick={()=>{setSize(8); setSelected([]);}}>OCTAVOS (8 clubes)</button>
+          </div>
+          <div className="section-title">Elegí {size} clubes ({selected.length}/{size})</div>
+          <div className="club-grid">
+            {clubs.map(c=>(
+              <div key={c.id} className={"club-chip"+(selected.includes(c.id)?" selected":"")} onClick={()=>toggle(c.id)}>
+                <span className="dot" style={{background:c.color}}></span>{c.nombre}
+              </div>
+            ))}
+          </div>
+          <div className="controls">
+            <button className="btn-primary" onClick={crearCopa} disabled={selected.length!==size}>CREAR COPA</button>
+          </div>
+        </>
+      )}
+
+      {bracket && (
+        <>
+          <div className="controls">
+            <button className="btn-ghost" onClick={()=>setBracket(null)}>← NUEVA COPA</button>
+            {!campeon && <button className="btn-primary" onClick={()=>simularRonda(bracket.length-1)}>SIMULAR RONDA {bracket.length}</button>}
+          </div>
+
+          {campeon && (
+            <div className="champion-banner">
+              <div className="trophy">🏆</div>
+              <div className="name">{clubById(campeon).nombre}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace", fontSize:11, color:"var(--muted)", marginTop:4}}>CAMPEÓN DE COPA</div>
+            </div>
+          )}
+
+          {bracket.map((ronda, idx)=>(
+            <div className="bracket-round" key={idx}>
+              <h4>{ronda.length===1? "FINAL" : ronda.length===2? "SEMIFINALES" : "RONDA "+(idx+1)}</h4>
+              {ronda.map((m,i)=>{
+                const dKey = idx+"-"+i;
+                return (
+                  <div key={i}>
+                    <div className="fixture-row">
+                      <div className="fixture-teams">
+                        <span style={{color:clubById(m.a).color}}>{clubById(m.a).nombre}</span>
+                        <span style={{color:"var(--muted)"}}>vs</span>
+                        <span style={{color:clubById(m.b).color}}>{clubById(m.b).nombre}</span>
+                      </div>
+                      {m.res ? (
+                        <div style={{display:"flex", alignItems:"center", gap:10}}>
+                          <span className="fixture-score">{m.res.score.A} - {m.res.score.B}</span>
+                          <button className="btn-ghost small" onClick={()=>setDetail(detail===dKey?null:dKey)}>{detail===dKey? "OCULTAR":"VER RELATO"}</button>
+                        </div>
+                      ) : <span className="fixture-score pending">pendiente</span>}
+                    </div>
+                    {detail===dKey && m.res && <div style={{marginBottom:10}}><TickerList events={m.res.events} /></div>}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ================= TAB: EDICIÓN ================= */
+function EdicionTab({clubs, setClubs}){
+  const [editingId, setEditingId] = useState(null);
+  let nextId = useRef(clubs.length).current;
+
+  const updateClub = (id, updated) => setClubs(clubs.map(c=> c.id===id? updated : c));
+  const renameClub = (id, nombre) => updateClub(id, {...clubs.find(c=>c.id===id), nombre});
+  const deleteClub = (id) => { setClubs(clubs.filter(c=>c.id!==id)); if(editingId===id) setEditingId(null); };
+  const addClub = () => {
+    const idx = clubs.length;
+    const nuevo = buildClub(Date.now(), "Nuevo Club "+(idx+1), PALETA[idx%PALETA.length], 62, POSICIONES.map((_,i)=>"Jugador "+(i+1)));
+    setClubs([...clubs, nuevo]);
+  };
+
+  return (
+    <div>
+      <div className="section-title">Clubes ({clubs.length})</div>
+      {clubs.map(club=>(
+        <div className="card team-card" key={club.id} style={{"--accent":club.color, marginBottom:12}}>
+          <div className="team-head">
+            <div className="field-inline" style={{flex:1}}>
+              <span className="dot" style={{width:10,height:10,borderRadius:"50%",background:club.color,flexShrink:0}}></span>
+              <input type="text" value={club.nombre} onChange={e=>renameClub(club.id, e.target.value)} />
+            </div>
+            <div className="team-ovr" style={{color:club.color}}>GRL {teamOverall(club)}</div>
+          </div>
+          <div style={{display:"flex", gap:8, marginTop:10}}>
+            <button className="edit-btn" onClick={()=>setEditingId(editingId===club.id? null : club.id)}>
+              {editingId===club.id? "▲ CERRAR EDICIÓN" : "✎ EDITAR PLANTILLA"}
+            </button>
+            <button className="edit-btn" onClick={()=>deleteClub(club.id)} style={{color:"var(--red)"}}>ELIMINAR CLUB</button>
+          </div>
+          {editingId===club.id && <RosterEditor team={club} accent={club.color} onChange={u=>updateClub(club.id,u)} />}
+        </div>
+      ))}
+      <button className="add-club-btn" onClick={addClub}>+ AGREGAR CLUB</button>
+    </div>
+  );
+}
+
+/* ================= APP ================= */
+function App(){
+  const [clubs, setClubs] = useState(initialClubs());
+  const [tab, setTab] = useState("rapido");
+
+  return (
+    <div className="wrap">
+      <div className="masthead">
+        <h1>MOTOR <span>// SIMULADOR</span></h1>
+        <div className="tag">MOTOR DE JUEGO v0.2 · {clubs.length} CLUBES CARGADOS</div>
+      </div>
+      <div className="tabs">
+        <button className={"tab-btn"+(tab==="rapido"?" active":"")} onClick={()=>setTab("rapido")}>Partido Rápido</button>
+        <button className={"tab-btn"+(tab==="liga"?" active":"")} onClick={()=>setTab("liga")}>Liga</button>
+        <button className={"tab-btn"+(tab==="copa"?" active":"")} onClick={()=>setTab("copa")}>Copa</button>
+        <button className={"tab-btn"+(tab==="edicion"?" active":"")} onClick={()=>setTab("edicion")}>Modo Edición</button>
+      </div>
+
+      {tab==="rapido" && <RapidoTab clubs={clubs} />}
+      {tab==="liga" && <LigaTab clubs={clubs} />}
+      {tab==="copa" && <CopaTab clubs={clubs} />}
+      {tab==="edicion" && <EdicionTab clubs={clubs} setClubs={setClubs} />}
     </div>
   );
 }
