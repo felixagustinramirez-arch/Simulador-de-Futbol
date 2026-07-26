@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOTOR // Simulador de Fútbol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root{
+    --bg:#0B1210;
+    --surface:#121C18;
+    --surface-2:#182620;
+    --line:#24352C;
+    --turf:#1F6B3A;
+    --turf-light:#3FA35B;
+    --chalk:#EDEAE1;
+    --chalk-dim:#A9B3AC;
+    --muted:#66766E;
+    --amber:#E8A33D;
+    --red:#C4462B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(31,107,58,0.25), transparent 60%),
+      var(--bg);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  ::selection{background:var(--turf-light);color:#08110C;}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 18px 80px;}
+
+  .masthead{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:28px;
+    flex-wrap:wrap; gap:8px;
+  }
+  .masthead h1{
+    font-family:'Oswald',sans-serif; font-weight:700; letter-spacing:0.04em;
+    font-size:26px; margin:0; text-transform:uppercase; color:var(--chalk);
+  }
+  .masthead h1 span{color:var(--turf-light);}
+  .masthead .tag{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.06em;}
+
+  .teams-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
+  @media(max-width:720px){.teams-row{grid-template-columns:1fr;}}
+
+  .team-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:2px;
+    padding:16px 18px; position:relative; overflow:hidden;
+  }
+  .team-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
+  }
+  .team-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .team-name{
+    font-family:'Oswald',sans-serif; font-size:19px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.02em; color:var(--chalk);
+  }
+  .team-ovr{font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:13px;}
+  .edit-btn{
+    background:transparent; border:1px solid var(--line); color:var(--chalk-dim);
+    font-family:'JetBrains Mono',monospace; font-size:11px; padding:5px 10px; cursor:pointer;
+    letter-spacing:0.04em; margin-top:10px; transition:all .15s;
+  }
+  .edit-btn:hover{border-color:var(--accent); color:var(--chalk);}
+
+  .roster{margin-top:12px; border-top:1px solid var(--line); padding-top:10px;}
+  .roster-row{
+    display:grid; grid-template-columns:26px 1fr 30px repeat(6,32px); gap:4px;
+    align-items:center; font-family:'JetBrains Mono',monospace; font-size:11px;
+    padding:3px 0; color:var(--chalk-dim);
+  }
+  .roster-row.head{color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:5px; margin-bottom:2px;}
+  .roster-row input{
+    width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--chalk);
+    font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 3px; text-align:center; border-radius:2px;
+  }
+  .roster-row .nm{color:var(--chalk); text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .pos-tag{color:var(--accent); font-size:10px;}
+
+  .scoreboard{
+    background:var(--surface); border:1px solid var(--line); border-radius:2px;
+    padding:22px; display:flex; align-items:center; justify-content:center; gap:26px;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .sb-team{text-align:center; min-width:140px;}
+  .sb-team .nm{
+    font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:16px; font-weight:600;
+    letter-spacing:0.02em;
+  }
+  .sb-score{
+    font-family:'Oswald',sans-serif; font-size:56px; font-weight:700; letter-spacing:0.03em;
+    display:flex; align-items:center; gap:14px; color:var(--chalk); line-height:1;
+  }
+  .sb-score .dash{color:var(--muted); font-size:36px;}
+  .sb-clock{
+    font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--amber);
+    display:block; margin-top:4px; letter-spacing:0.05em;
+  }
+
+  .controls{display:flex; justify-content:center; gap:10px; margin-bottom:24px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--turf); border:1px solid var(--turf-light); color:var(--chalk);
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+    font-size:14px; padding:12px 26px; cursor:pointer; border-radius:2px; transition:all .15s;
+  }
+  .btn-primary:hover{background:var(--turf-light); box-shadow:0 0 0 3px rgba(63,163,91,0.15);}
+  .btn-primary:disabled{opacity:0.4; cursor:not-allowed;}
+  .btn-ghost{
+    background:transparent; border:1px solid var(--line); color:var(--chalk-dim);
+    font-family:'JetBrains Mono',monospace; font-size:12px; padding:11px 16px; cursor:pointer; border-radius:2px;
+  }
+  .btn-ghost:hover{border-color:var(--chalk-dim); color:var(--chalk);}
+  .btn-ghost.active{border-color:var(--turf-light); color:var(--turf-light);}
+
+  .ticker-panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:2px;
+    min-height:120px; max-height:420px; overflow-y:auto; padding:4px 0;
+  }
+  .ticker-empty{
+    padding:40px 20px; text-align:center; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:12px;
+  }
+  .tick{
+    display:flex; gap:12px; padding:9px 18px; border-bottom:1px solid var(--line);
+    animation:slideIn .25s ease-out;
+  }
+  @keyframes slideIn{from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);}}
+  .tick .min{
+    font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; color:var(--muted);
+    min-width:34px; flex-shrink:0;
+  }
+  .tick.goal .min{color:var(--amber);}
+  .tick.card-y .min{color:#D9B34C;}
+  .tick.card-r .min{color:var(--red);}
+  .tick .txt{font-size:13.5px; line-height:1.5; color:var(--chalk-dim);}
+  .tick.goal .txt{color:var(--amber); font-weight:600;}
+  .tick.half .txt{color:var(--chalk); font-style:italic;}
+  .tick.half{background:var(--surface-2); justify-content:center; text-align:center;}
+  .tick.half .min{display:none;}
+
+  .stats-panel{
+    display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:22px;
+  }
+  @media(max-width:600px){.stats-panel{grid-template-columns:1fr;}}
+  .stat-row{margin-bottom:12px;}
+  .stat-labels{
+    display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace;
+    font-size:11px; color:var(--chalk-dim); margin-bottom:4px;
+  }
+  .stat-bar-wrap{display:flex; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+  .stat-bar-a{background:var(--turf-light);}
+  .stat-bar-b{background:var(--amber);}
+  .stat-title{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); text-align:center;
+    letter-spacing:0.08em; margin:22px 0 10px; text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useRef, useEffect} = React;
+
+/* ---------- Datos base ---------- */
+const POSICIONES = ["POR","LI","DFC","DFC","LD","MCD","MC","MCO","EI","ED","DC"];
+
+function mkPlayer(nombre, pos, base){
+  const j = (v,spread=8)=> Math.max(35, Math.min(96, v + Math.round((Math.random()*spread*2)-spread)));
+  return {
+    nombre, pos,
+    ritmo:j(base), tiro:j(base), pase:j(base), regate:j(base), defensa:j(base), fisico:j(base),
+  };
+}
+function overall(p){
+  return Math.round((p.ritmo+p.tiro+p.pase+p.regate+p.defensa+p.fisico)/6);
+}
+function teamOverall(team){
+  return Math.round(team.players.reduce((s,p)=>s+overall(p),0)/team.players.length);
+}
+
+function buildTeam(nombre, color, base, nombresJugadores){
+  const players = POSICIONES.map((pos,i)=> mkPlayer(nombresJugadores[i], pos, base));
+  return {nombre, color, players};
+}
+
+const NOMBRES_A = ["Marano","Bezares","Cintra","Follonier","Aguilaz","Delvento","Miraz","Cuartero","Solvez","Tarrago","Iberrí"];
+const NOMBRES_B = ["Korvac","Etxarri","Bramante","Fossey","Undurraga","Reznik","Palombo","Sáez","Vintar","Achucarro","Dolman"];
+
+const INITIAL_A = buildTeam("Real Bahía CF", "#3FA35B", 68, NOMBRES_A);
+const INITIAL_B = buildTeam("Unión Atlético Norte", "#E8A33D", 66, NOMBRES_B);
+
+/* ---------- Motor de simulación ---------- */
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function rnd(){ return Math.random(); }
+function fmt(tpl, vars){
+  return tpl.replace(/\{(\w+)\}/g, (_,k)=> vars[k]!==undefined? vars[k] : `{${k}}`);
+}
+
+const FRASES = {
+  buildupFail: [
+    "{Y} corta el avance por el medio.",
+    "Pérdida de {X} en la salida, recupera {Y}.",
+    "{py} se anticipa y corta el pase de {px}.",
+    "Presión de {Y} y {X} pierde la pelota en la salida.",
+  ],
+  chance: [
+    "{px} encara y busca el área rival.",
+    "Buen pase filtrado de {px} para {px2}.",
+    "{px} se va de un rival con una gambeta y llega cerca del área.",
+    "{X} arma una jugada colectiva por la banda.",
+    "{px} recibe de espaldas, gira y avanza hacia el área.",
+  ],
+  chanceStopped: [
+    "La defensa de {Y} despeja el peligro.",
+    "{py} se tira al piso y corta el centro.",
+    "Buena marca de {py}, no hay más avance.",
+  ],
+  corner: "Desvío que termina en córner para {X}.",
+  cornerPlay: [
+    "{px} cabecea el córner pero se va desviado.",
+    "El córner de {X} lo despeja la defensa de {Y}.",
+    "Remate de cabeza tras el córner, atrapa {gk}.",
+  ],
+  shotOff: [
+    "{px} dispara y el balón se va desviado.",
+    "Remate de {px} por encima del travesaño.",
+    "{px} probó desde fuera del área, se pierde junto al palo.",
+    "Le pegó fuerte {px}, pero desvió por poco.",
+  ],
+  shotSaved: [
+    "¡Atajada de {gk}! Manda el balón al córner.",
+    "{gk} responde bien y ataja el remate de {px}.",
+    "Gran intervención de {gk}, evita el gol de {X}.",
+    "{gk} se estira y saca una pelota que iba adentro.",
+  ],
+  goal: [
+    "¡¡GOOOL de {X}!! {px} define con clase.",
+    "¡GOL! {px} conecta un remate imparable.",
+    "¡La rompe {px}! Gol de {X}.",
+    "{px} no perdona y pone el {sa}-{sb} para {X}.",
+    "Cabezazo letal de {px}. ¡Gol de {X}!",
+  ],
+  goalAssist: " Asistencia de {px2}.",
+  foul: [
+    "Falta de {py} sobre {px}.",
+    "{py} comete falta táctica sobre {px}.",
+    "Corte duro de {py}, el árbitro marca falta.",
+  ],
+  yellow: "El árbitro amonesta a {py} con tarjeta amarilla.",
+  red: "¡Tarjeta roja! Expulsan a {py}.",
+};
+
+function jugadorAl(team, poses){
+  const cand = team.players.filter(p=>poses.includes(p.pos));
+  return cand.length? pick(cand) : pick(team.players);
+}
+
+function teamStrength(team){
+  const atk = team.players.filter(p=>["DC","EI","ED","MCO"].includes(p.pos));
+  const mid = team.players.filter(p=>["MCD","MC","MCO","LI","LD"].includes(p.pos));
+  const def = team.players.filter(p=>["DFC","LI","LD","MCD"].includes(p.pos));
+  const gk = team.players.find(p=>p.pos==="POR");
+  const avg = (arr,f)=> arr.length? arr.reduce((s,p)=>s+f(p),0)/arr.length : 55;
+  return {
+    ataque: avg(atk, p=>(p.tiro+p.regate+p.pase+p.ritmo)/4),
+    medio: avg(mid, p=>(p.pase+p.ritmo+p.regate)/3),
+    defensa: avg(def, p=>(p.defensa+p.fisico)/2),
+    gk,
+  };
+}
+
+function simulateMatch(teamA, teamB){
+  const events = [];
+  const stats = {
+    A:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0,rojas:0},
+    B:{posesion:0,tiros:0,tirosPuerta:0,corners:0,faltas:0,amarillas:0,rojas:0},
+  };
+  let score = {A:0,B:0};
+  const sA = teamStrength(teamA), sB = teamStrength(teamB);
+
+  const nJugadas = 26 + Math.floor(rnd()*6);
+  let minutos = [];
+  for(let i=0;i<nJugadas;i++) minutos.push(3 + Math.floor(rnd()*86));
+  minutos.sort((a,b)=>a-b);
+
+  let halftimeAdded = false;
+
+  minutos.forEach((minuto)=>{
+    if(!halftimeAdded && minuto>=45){
+      events.push({minuto:45, type:"half", texto:"— Entretiempo —"});
+      halftimeAdded = true;
+    }
+    const aFav = sA.medio / (sA.medio+sB.medio);
+    const isA = rnd() < aFav;
+    const X = isA? "A":"B", Y = isA? "B":"A";
+    const Xteam = isA? teamA:teamB, Yteam = isA? teamB:teamA;
+    const Xs = isA? sA:sB, Ys = isA? sB:sA;
+    stats[X].posesion++;
+
+    const buildProb = Xs.medio / (Xs.medio + Ys.defensa*0.85);
+    if(rnd() > buildProb){
+      const py = jugadorAl(Yteam, ["MCD","MC","DFC","LI","LD"]);
+      const px = jugadorAl(Xteam, ["MC","MCO","MCD"]);
+      events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.buildupFail), {X:Xteam.nombre, Y:Yteam.nombre, py:py.nombre, px:px.nombre})});
+      if(rnd()<0.08){
+        const fouler = jugadorAl(Yteam, ["DFC","LI","LD","MCD"]);
+        stats[Y].faltas++;
+        events.push({minuto, type:"foul", texto: fmt(pick(FRASES.foul), {py:fouler.nombre, px:px.nombre})});
+        if(rnd()<0.12){ stats[Y].amarillas++; events.push({minuto, type:"card-y", texto: fmt(FRASES.yellow,{py:fouler.nombre})}); }
+      }
+      return;
+    }
+
+    const px = jugadorAl(Xteam, ["MCO","MC","EI","ED"]);
+    const px2 = jugadorAl(Xteam, ["DC","MCO","EI","ED"]);
+    events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.chance), {X:Xteam.nombre, px:px.nombre, px2:px2.nombre})});
+
+    const shotProb = Xs.ataque / (Xs.ataque + Ys.defensa*0.9);
+    if(rnd() > shotProb){
+      const py = jugadorAl(Yteam, ["DFC","LI","LD","MCD"]);
+      if(rnd()<0.3){
+        stats[X].corners++;
+        events.push({minuto, type:"neutral", texto: fmt(FRASES.corner,{X:Xteam.nombre})});
+        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.cornerPlay),{px:px2.nombre, X:Xteam.nombre, Y:Yteam.nombre, gk:Yteam.players.find(p=>p.pos==="POR").nombre})});
+      } else {
+        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.chanceStopped),{Y:Yteam.nombre, py:py.nombre})});
+      }
+      return;
+    }
+
+    const shooter = px2;
+    stats[X].tiros++;
+    const onTargetProb = 0.42 + (shooter.tiro-60)/220;
+    if(rnd() > onTargetProb){
+      events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.shotOff), {px:shooter.nombre})});
+      return;
+    }
+    stats[X].tirosPuerta++;
+    const gk = Yteam.players.find(p=>p.pos==="POR");
+    const saveProb = gk.defensa / (gk.defensa + shooter.tiro*0.95);
+    if(rnd() < saveProb*0.75){
+      events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.shotSaved), {gk:gk.nombre, px:shooter.nombre, X:Xteam.nombre})});
+      return;
+    }
+    score[X]++;
+    let txt = fmt(pick(FRASES.goal), {X:Xteam.nombre, px:shooter.nombre, sa:score.A, sb:score.B});
+    if(rnd()<0.55 && px.nombre!==shooter.nombre){ txt += fmt(FRASES.goalAssist,{px2:px.nombre}); }
+    events.push({minuto, type:"goal", texto: txt, scoreA:score.A, scoreB:score.B});
+  });
+
+  if(!halftimeAdded) events.push({minuto:45, type:"half", texto:"— Entretiempo —"});
+  events.push({minuto:90, type:"half", texto:`— Final del partido: ${teamA.nombre} ${score.A} - ${score.B} ${teamB.nombre} —`});
+
+  const totalPos = stats.A.posesion+stats.B.posesion || 1;
+  stats.A.posesionPct = Math.round(stats.A.posesion/totalPos*100);
+  stats.B.posesionPct = 100-stats.A.posesionPct;
+
+  return {events, score, stats};
+}
+
+/* ---------- Componentes UI ---------- */
+function RosterEditor({team, setTeam, accent}){
+  const updateStat = (idx, field, val) => {
+    const players = team.players.slice();
+    players[idx] = {...players[idx], [field]: Math.max(1, Math.min(99, Number(val)||1))};
+    setTeam({...team, players});
+  };
+  const updateName = (idx, val) => {
+    const players = team.players.slice();
+    players[idx] = {...players[idx], nombre: val};
+    setTeam({...team, players});
+  };
+  return (
+    <div className="roster">
+      <div className="roster-row head">
+        <span></span><span>Jugador</span><span>Pos</span>
+        <span>RIT</span><span>TIR</span><span>PAS</span><span>REG</span><span>DEF</span><span>FIS</span>
+      </div>
+      {team.players.map((p,i)=>(
+        <div className="roster-row" key={i}>
+          <span style={{color:"var(--muted)"}}>{i+1}</span>
+          <input className="nm" value={p.nombre} onChange={e=>updateName(i,e.target.value)} />
+          <span className="pos-tag" style={{color:accent}}>{p.pos}</span>
+          <input value={p.ritmo} onChange={e=>updateStat(i,"ritmo",e.target.value)} />
+          <input value={p.tiro} onChange={e=>updateStat(i,"tiro",e.target.value)} />
+          <input value={p.pase} onChange={e=>updateStat(i,"pase",e.target.value)} />
+          <input value={p.regate} onChange={e=>updateStat(i,"regate",e.target.value)} />
+          <input value={p.defensa} onChange={e=>updateStat(i,"defensa",e.target.value)} />
+          <input value={p.fisico} onChange={e=>updateStat(i,"fisico",e.target.value)} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TeamCard({team, setTeam, accent, label}){
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className="team-card" style={{"--accent":accent}}>
+      <div className="team-head">
+        <div>
+          <div className="team-name">{team.nombre}</div>
+          <div style={{fontSize:"10px", color:"var(--muted)", fontFamily:"'JetBrains Mono',monospace", marginTop:"2px"}}>{label}</div>
+        </div>
+        <div className="team-ovr" style={{color:accent}}>GRL {teamOverall(team)}</div>
+      </div>
+      <button className="edit-btn" onClick={()=>setEditing(!editing)}>
+        {editing? "▲ CERRAR EDICIÓN" : "✎ EDITAR PLANTILLA"}
+      </button>
+      {editing && <RosterEditor team={team} setTeam={setTeam} accent={accent} />}
+    </div>
+  );
+}
+
+function StatRow({label, a, b, maxOverride}){
+  const max = maxOverride || Math.max(a,b,1);
+  const pa = (a/ (a+b||1))*100;
+  const pb = 100-pa;
+  return (
+    <div className="stat-row">
+      <div className="stat-labels"><span>{a}</span><span>{label}</span><span>{b}</span></div>
+      <div className="stat-bar-wrap">
+        <div className="stat-bar-a" style={{width:pa+"%"}}></div>
+        <div className="stat-bar-b" style={{width:pb+"%"}}></div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [teamA, setTeamA] = useState(INITIAL_A);
+  const [teamB, setTeamB] = useState(INITIAL_B);
+  const [result, setResult] = useState(null);
+  const [visibleEvents, setVisibleEvents] = useState([]);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState("vivo"); // "vivo" | "instant"
+  const [clock, setClock] = useState(0);
+  const tickerRef = useRef(null);
+  const timerRef = useRef(null);
+
+  useEffect(()=>{
+    if(tickerRef.current) tickerRef.current.scrollTop = tickerRef.current.scrollHeight;
+  }, [visibleEvents]);
+
+  useEffect(()=> ()=> clearInterval(timerRef.current), []);
+
+  const startMatch = () => {
+    clearInterval(timerRef.current);
+    const res = simulateMatch(teamA, teamB);
+    setResult(res);
+    setVisibleEvents([]);
+    setClock(0);
+    setPlaying(true);
+
+    if(speed==="instant"){
+      setVisibleEvents(res.events);
+      setClock(90);
+      setPlaying(false);
+      return;
+    }
+
+    let i = 0;
+    timerRef.current = setInterval(()=>{
+      if(i >= res.events.length){
+        clearInterval(timerRef.current);
+        setPlaying(false);
+        return;
+      }
+      setVisibleEvents(prev => [...prev, res.events[i]]);
+      setClock(res.events[i].minuto);
+      i++;
+    }, 420);
+  };
+
+  const skipToEnd = () => {
+    if(!result) return;
+    clearInterval(timerRef.current);
+    setVisibleEvents(result.events);
+    setClock(90);
+    setPlaying(false);
+  };
+
+  const liveScore = (() => {
+    let a=0,b=0;
+    visibleEvents.forEach(e=>{ if(e.type==="goal"){ a=e.scoreA; b=e.scoreB; } });
+    return {a,b};
+  })();
+
+  return (
+    <div className="wrap">
+      <div className="masthead">
+        <h1>MOTOR <span>// SIMULADOR</span></h1>
+        <div className="tag">MODO: PARTIDO RÁPIDO · MOTOR DE JUEGO v0.1</div>
+      </div>
+
+      <div className="teams-row">
+        <TeamCard team={teamA} setTeam={setTeamA} accent="#3FA35B" label="LOCAL" />
+        <TeamCard team={teamB} setTeam={setTeamB} accent="#E8A33D" label="VISITANTE" />
+      </div>
+
+      <div className="scoreboard">
+        <div className="sb-team"><div className="nm" style={{color:"#3FA35B"}}>{teamA.nombre}</div></div>
+        <div>
+          <div className="sb-score">
+            <span>{liveScore.a}</span><span className="dash">—</span><span>{liveScore.b}</span>
+          </div>
+          <span className="sb-clock" style={{textAlign:"center", display:"block"}}>{clock>0? `${clock}'` : "00'"}</span>
+        </div>
+        <div className="sb-team"><div className="nm" style={{color:"#E8A33D"}}>{teamB.nombre}</div></div>
+      </div>
+
+      <div className="controls">
+        <button className="btn-primary" onClick={startMatch} disabled={playing}>
+          {playing? "Simulando..." : "▶ SIMULAR PARTIDO"}
+        </button>
+        <button className={"btn-ghost"+(speed==="vivo"?" active":"")} onClick={()=>setSpeed("vivo")}>EN VIVO</button>
+        <button className={"btn-ghost"+(speed==="instant"?" active":"")} onClick={()=>setSpeed("instant")}>INSTANTÁNEO</button>
+        {playing && speed==="vivo" && <button className="btn-ghost" onClick={skipToEnd}>SALTAR AL FINAL</button>}
+      </div>
+
+      <div className="ticker-panel" ref={tickerRef}>
+        {visibleEvents.length===0 && (
+          <div className="ticker-empty">La transmisión del partido aparecerá acá minuto a minuto.</div>
+        )}
+        {visibleEvents.map((e,i)=>(
+          <div className={"tick "+e.type} key={i}>
+            <span className="min">{e.type==="half"? "" : e.minuto+"'"}</span>
+            <span className="txt">{e.texto}</span>
+          </div>
+        ))}
+      </div>
+
+      {result && visibleEvents.length===result.events.length && (
+        <>
+          <div className="stat-title">Estadísticas del partido</div>
+          <div className="stats-panel">
+            <div>
+              <StatRow label="POSESIÓN %" a={result.stats.A.posesionPct} b={result.stats.B.posesionPct} maxOverride={100} />
+              <StatRow label="TIROS" a={result.stats.A.tiros} b={result.stats.B.tiros} />
+              <StatRow label="TIROS A PUERTA" a={result.stats.A.tirosPuerta} b={result.stats.B.tirosPuerta} />
+            </div>
+            <div>
+              <StatRow label="CÓRNERS" a={result.stats.A.corners} b={result.stats.B.corners} />
+              <StatRow label="FALTAS" a={result.stats.A.faltas} b={result.stats.B.faltas} />
+              <StatRow label="TARJETAS AMARILLAS" a={result.stats.A.amarillas} b={result.stats.B.amarillas} />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
