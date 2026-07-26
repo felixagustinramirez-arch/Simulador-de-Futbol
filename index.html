@@ -94,9 +94,9 @@
 
   .roster{margin-top:12px; border-top:1px solid var(--line); padding-top:10px; overflow-x:auto;}
   .roster-row{
-    display:grid; grid-template-columns:26px 130px 34px repeat(6,32px) 26px; gap:4px;
+    display:grid; grid-template-columns:22px 120px 52px repeat(6,30px) 30px 20px; gap:4px;
     align-items:center; font-family:'JetBrains Mono',monospace; font-size:11px;
-    padding:3px 0; color:var(--chalk-dim); min-width:420px;
+    padding:3px 0; color:var(--chalk-dim); min-width:520px;
   }
   .roster-row.head{color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:5px; margin-bottom:2px;}
   .roster-row input{
@@ -207,8 +207,67 @@
 <script type="text/babel">
 const {useState, useRef, useEffect} = React;
 
+/* ================= ERROR BOUNDARY =================
+   Si algo falla durante el render (por ejemplo al terminar un partido "en vivo"),
+   esto evita que toda la app se caiga a pantalla en blanco: muestra un aviso
+   y permite reiniciar sin perder el resto del estado del navegador. */
+class ErrorBoundary extends React.Component{
+  constructor(props){ super(props); this.state = {error:null}; }
+  static getDerivedStateFromError(error){ return {error}; }
+  componentDidCatch(error, info){ console.error("MOTOR crash:", error, info); }
+  render(){
+    if(this.state.error){
+      return (
+        <div style={{maxWidth:520, margin:"60px auto", padding:20, fontFamily:"'JetBrains Mono',monospace", color:"#EDEAE1"}}>
+          <div style={{fontSize:13, color:"#E8A33D", marginBottom:10}}>⚠ OCURRIÓ UN ERROR Y SE DETUVO LA VISTA</div>
+          <div style={{fontSize:11.5, color:"#A9B3AC", marginBottom:16, lineHeight:1.5}}>{String(this.state.error && this.state.error.message || this.state.error)}</div>
+          <button className="btn-primary" onClick={()=>this.setState({error:null})}>REINTENTAR</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 /* ================= DATOS BASE ================= */
-const POSICIONES = ["POR","LI","DFC","DFC","LD","MCD","MC","MCO","EI","ED","DC"];
+// Códigos de posición oficiales + etiqueta en español
+const POSICIONES = ["GK","DF","LB","RB","DM","MF","AM","RM","LM","CF","ST","LW","RW"];
+const POS_LABEL = {
+  GK:"Portero", DF:"Central", LB:"Lateral Izquierdo", RB:"Lateral Derecho",
+  DM:"Medio Defensivo", MF:"Mediocampista", AM:"Medio Ofensivo",
+  RM:"Interior Derecho", LM:"Interior Izquierdo", CF:"Segunda Punta",
+  ST:"Delantero Centro", LW:"Extremo Izquierdo", RW:"Extremo Derecho",
+};
+// Pesos por posición para calcular el GRL a partir de las 6 estadísticas.
+// Cada tabla suma 1.00 — así cada posición valora distinto sus atributos.
+const POS_WEIGHTS = {
+  GK: {defensa:0.45, fisico:0.30, pase:0.15, ritmo:0.05, tiro:0.00, regate:0.05},
+  DF: {defensa:0.40, fisico:0.30, ritmo:0.10, pase:0.15, regate:0.03, tiro:0.02},
+  LB: {defensa:0.30, ritmo:0.20, fisico:0.15, pase:0.20, regate:0.10, tiro:0.05},
+  RB: {defensa:0.30, ritmo:0.20, fisico:0.15, pase:0.20, regate:0.10, tiro:0.05},
+  DM: {defensa:0.30, pase:0.25, fisico:0.20, ritmo:0.10, regate:0.10, tiro:0.05},
+  MF: {pase:0.30, ritmo:0.15, regate:0.15, defensa:0.15, fisico:0.15, tiro:0.10},
+  AM: {pase:0.25, regate:0.25, tiro:0.20, ritmo:0.15, fisico:0.10, defensa:0.05},
+  RM: {pase:0.20, regate:0.20, ritmo:0.20, tiro:0.15, fisico:0.15, defensa:0.10},
+  LM: {pase:0.20, regate:0.20, ritmo:0.20, tiro:0.15, fisico:0.15, defensa:0.10},
+  CF: {tiro:0.25, regate:0.25, pase:0.20, ritmo:0.15, fisico:0.10, defensa:0.05},
+  ST: {tiro:0.35, fisico:0.20, ritmo:0.20, regate:0.15, pase:0.08, defensa:0.02},
+  LW: {ritmo:0.30, regate:0.25, tiro:0.20, pase:0.15, fisico:0.07, defensa:0.03},
+  RW: {ritmo:0.30, regate:0.25, tiro:0.20, pase:0.15, fisico:0.07, defensa:0.03},
+};
+// Plantilla base de 32 jugadores por club (3 GK, 4 DF, 2 LB, 2 RB, 2 DM, 4 MF, 2 AM, 2 RM, 2 LM, 2 CF, 3 ST, 2 LW, 2 RW)
+const SQUAD_TEMPLATE = [
+  "GK","GK","GK",
+  "DF","DF","DF","DF",
+  "LB","LB","RB","RB",
+  "DM","DM",
+  "MF","MF","MF","MF",
+  "AM","AM",
+  "RM","RM","LM","LM",
+  "CF","CF",
+  "ST","ST","ST",
+  "LW","LW","RW","RW",
+];
 const PALETA = ["#3FA35B","#E8A33D","#4E8FD8","#C4462B","#9B6FD1","#3FB6A3","#D9527A","#8FA33F"];
 
 const SURNAME_POOL = [
@@ -221,7 +280,17 @@ const SURNAME_POOL = [
   "Zoraida","Barletta","Umbelina","Rescala","Foncea","Bramanti","Solórzano","Vanterpool","Cazorla","Neumann","Tarabini",
   "Guiral","Belcastro","Ondarza","Vilaró","Krivenko","Marabotto","Salguero","Fantín","Ostrander","Baldacci"
 ];
-function namesForClub(index){ return SURNAME_POOL.slice(index*11, index*11+11); }
+// Genera N apellidos para un club a partir del pool global (rota y desambigua si se agota)
+function namesForClub(clubIndex, cantidad){
+  const names = [];
+  for(let i=0;i<cantidad;i++){
+    const globalIdx = clubIndex*cantidad + i;
+    const base = SURNAME_POOL[globalIdx % SURNAME_POOL.length];
+    const vuelta = Math.floor(globalIdx / SURNAME_POOL.length);
+    names.push(vuelta>0? `${base} ${vuelta+1}` : base);
+  }
+  return names;
+}
 
 const CLUB_NOMBRES = [
   "Real Bahía CF","Unión Atlético Norte","Deportivo Almendra","Sporting Roquetas",
@@ -232,16 +301,22 @@ function mkPlayer(nombre, pos, base){
   const j = (v,spread=8)=> Math.max(35, Math.min(96, v + Math.round((Math.random()*spread*2)-spread)));
   return {nombre, pos, ritmo:j(base), tiro:j(base), pase:j(base), regate:j(base), defensa:j(base), fisico:j(base)};
 }
-function overall(p){ return Math.round((p.ritmo+p.tiro+p.pase+p.regate+p.defensa+p.fisico)/6); }
+// GRL de un jugador: promedio ponderado de sus 6 stats según el peso de su posición
+function overall(p){
+  const w = POS_WEIGHTS[p.pos] || {ritmo:1/6,tiro:1/6,pase:1/6,regate:1/6,defensa:1/6,fisico:1/6};
+  const val = p.ritmo*(w.ritmo||0) + p.tiro*(w.tiro||0) + p.pase*(w.pase||0)
+    + p.regate*(w.regate||0) + p.defensa*(w.defensa||0) + p.fisico*(w.fisico||0);
+  return Math.round(val);
+}
 function teamOverall(team){ return Math.round(team.players.reduce((s,p)=>s+overall(p),0)/team.players.length); }
 
 function buildClub(id, nombre, color, base, nombresJugadores){
-  const players = POSICIONES.map((pos,i)=> mkPlayer(nombresJugadores[i], pos, base));
+  const players = SQUAD_TEMPLATE.map((pos,i)=> mkPlayer(nombresJugadores[i], pos, base));
   return {id, nombre, color, players};
 }
 
 function initialClubs(){
-  return CLUB_NOMBRES.map((n,i)=> buildClub(i, n, PALETA[i%PALETA.length], 60+Math.round(Math.random()*14), namesForClub(i)));
+  return CLUB_NOMBRES.map((n,i)=> buildClub(i, n, PALETA[i%PALETA.length], 60+Math.round(Math.random()*14), namesForClub(i, SQUAD_TEMPLATE.length)));
 }
 
 /* ================= MOTOR DE SIMULACIÓN ================= */
@@ -307,10 +382,10 @@ function jugadorAl(team, poses){
   return cand.length? pick(cand) : pick(team.players);
 }
 function teamStrength(team){
-  const atk = team.players.filter(p=>["DC","EI","ED","MCO"].includes(p.pos));
-  const mid = team.players.filter(p=>["MCD","MC","MCO","LI","LD"].includes(p.pos));
-  const def = team.players.filter(p=>["DFC","LI","LD","MCD"].includes(p.pos));
-  const gk = team.players.find(p=>p.pos==="POR") || team.players[0];
+  const atk = team.players.filter(p=>["ST","CF","LW","RW","AM"].includes(p.pos));
+  const mid = team.players.filter(p=>["DM","MF","AM","RM","LM"].includes(p.pos));
+  const def = team.players.filter(p=>["DF","LB","RB","DM"].includes(p.pos));
+  const gk = team.players.find(p=>p.pos==="GK") || team.players[0];
   const avg = (arr,f)=> arr.length? arr.reduce((s,p)=>s+f(p),0)/arr.length : 55;
   return {
     ataque: avg(atk, p=>(p.tiro+p.regate+p.pase+p.ritmo)/4),
@@ -348,11 +423,11 @@ function simulateMatch(teamA, teamB){
 
     const buildProb = Xs.medio / (Xs.medio + Ys.defensa*0.85);
     if(rnd() > buildProb){
-      const py = jugadorAl(Yteam, ["MCD","MC","DFC","LI","LD"]);
-      const px = jugadorAl(Xteam, ["MC","MCO","MCD"]);
+      const py = jugadorAl(Yteam, ["DM","MF","DF","LB","RB"]);
+      const px = jugadorAl(Xteam, ["MF","AM","DM"]);
       events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.buildupFail), {X:Xteam.nombre, Y:Yteam.nombre, py:py.nombre, px:px.nombre})});
       if(rnd()<0.08){
-        const fouler = jugadorAl(Yteam, ["DFC","LI","LD","MCD"]);
+        const fouler = jugadorAl(Yteam, ["DF","LB","RB","DM"]);
         stats[Y].faltas++;
         events.push({minuto, type:"foul", texto: fmt(pick(FRASES.foul), {py:fouler.nombre, px:px.nombre})});
         if(rnd()<0.12){ stats[Y].amarillas++; events.push({minuto, type:"card-y", texto: fmt(FRASES.yellow,{py:fouler.nombre})}); }
@@ -360,17 +435,17 @@ function simulateMatch(teamA, teamB){
       return;
     }
 
-    const px = jugadorAl(Xteam, ["MCO","MC","EI","ED"]);
-    const px2 = jugadorAl(Xteam, ["DC","MCO","EI","ED"]);
+    const px = jugadorAl(Xteam, ["AM","MF","LW","RW"]);
+    const px2 = jugadorAl(Xteam, ["ST","AM","LW","RW"]);
     events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.chance), {X:Xteam.nombre, px:px.nombre, px2:px2.nombre})});
 
     const shotProb = Xs.ataque / (Xs.ataque + Ys.defensa*0.9);
     if(rnd() > shotProb){
-      const py = jugadorAl(Yteam, ["DFC","LI","LD","MCD"]);
+      const py = jugadorAl(Yteam, ["DF","LB","RB","DM"]);
       if(rnd()<0.3){
         stats[X].corners++;
         events.push({minuto, type:"neutral", texto: fmt(FRASES.corner,{X:Xteam.nombre})});
-        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.cornerPlay),{px:px2.nombre, X:Xteam.nombre, Y:Yteam.nombre, gk:(Yteam.players.find(p=>p.pos==="POR")||Yteam.players[0]).nombre})});
+        events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.cornerPlay),{px:px2.nombre, X:Xteam.nombre, Y:Yteam.nombre, gk:(Yteam.players.find(p=>p.pos==="GK")||Yteam.players[0]).nombre})});
       } else {
         events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.chanceStopped),{Y:Yteam.nombre, py:py.nombre})});
       }
@@ -385,7 +460,7 @@ function simulateMatch(teamA, teamB){
       return;
     }
     stats[X].tirosPuerta++;
-    const gk = Yteam.players.find(p=>p.pos==="POR") || Yteam.players[0];
+    const gk = Yteam.players.find(p=>p.pos==="GK") || Yteam.players[0];
     const saveProb = gk.defensa / (gk.defensa + shooter.tiro*0.95);
     if(rnd() < saveProb*0.75){
       events.push({minuto, type:"neutral", texto: fmt(pick(FRASES.shotSaved), {gk:gk.nombre, px:shooter.nombre, X:Xteam.nombre})});
@@ -407,6 +482,8 @@ function simulateMatch(teamA, teamB){
 }
 
 /* ================= COMPONENTES COMPARTIDOS ================= */
+const SQUAD_TARGET = 32;
+
 function RosterEditor({team, onChange, accent}){
   const updateStat = (idx, field, val) => {
     const players = team.players.slice();
@@ -418,24 +495,51 @@ function RosterEditor({team, onChange, accent}){
     players[idx] = {...players[idx], nombre: val};
     onChange({...team, players});
   };
+  const updatePos = (idx, val) => {
+    const players = team.players.slice();
+    players[idx] = {...players[idx], pos: val};
+    onChange({...team, players});
+  };
+  const addPlayer = () => {
+    const players = team.players.slice();
+    players.push(mkPlayer("Nuevo Jugador "+(players.length+1), "MF", 60));
+    onChange({...team, players});
+  };
+  const removePlayer = (idx) => {
+    const players = team.players.slice();
+    players.splice(idx,1);
+    onChange({...team, players});
+  };
+
+  const count = team.players.length;
   return (
     <div className="roster">
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, flexWrap:"wrap", gap:8}}>
+        <span style={{fontFamily:"'JetBrains Mono',monospace", fontSize:11, color: count===SQUAD_TARGET? "var(--turf-light)":"var(--amber)"}}>
+          PLANTILLA: {count}/{SQUAD_TARGET} JUGADORES
+        </span>
+        <button className="edit-btn" onClick={addPlayer}>+ AGREGAR JUGADOR</button>
+      </div>
       <div className="roster-row head">
         <span></span><span>Jugador</span><span>Pos</span>
-        <span>RIT</span><span>TIR</span><span>PAS</span><span>REG</span><span>DEF</span><span>FIS</span><span></span>
+        <span>RIT</span><span>TIR</span><span>PAS</span><span>REG</span><span>DEF</span><span>FIS</span>
+        <span>GRL</span><span></span>
       </div>
       {team.players.map((p,i)=>(
         <div className="roster-row" key={i}>
           <span style={{color:"var(--muted)"}}>{i+1}</span>
           <input className="nm" value={p.nombre} onChange={e=>updateName(i,e.target.value)} />
-          <span className="pos-tag" style={{color:accent}}>{p.pos}</span>
+          <select value={p.pos} onChange={e=>updatePos(i,e.target.value)} style={{fontFamily:"'JetBrains Mono',monospace", fontSize:10.5, padding:"2px 1px", color:accent}} title={POS_LABEL[p.pos]}>
+            {POSICIONES.map(code=> <option key={code} value={code}>{code}</option>)}
+          </select>
           <input value={p.ritmo} onChange={e=>updateStat(i,"ritmo",e.target.value)} />
           <input value={p.tiro} onChange={e=>updateStat(i,"tiro",e.target.value)} />
           <input value={p.pase} onChange={e=>updateStat(i,"pase",e.target.value)} />
           <input value={p.regate} onChange={e=>updateStat(i,"regate",e.target.value)} />
           <input value={p.defensa} onChange={e=>updateStat(i,"defensa",e.target.value)} />
           <input value={p.fisico} onChange={e=>updateStat(i,"fisico",e.target.value)} />
-          <span></span>
+          <span style={{color:accent, fontWeight:700}}>{overall(p)}</span>
+          <button className="del-x" onClick={()=>removePlayer(i)} title="Eliminar jugador">✕</button>
         </div>
       ))}
     </div>
@@ -482,19 +586,22 @@ function RapidoTab({clubs}){
   const [speed, setSpeed] = useState("vivo");
   const [clock, setClock] = useState(0);
   const timerRef = useRef(null);
+  const mountedRef = useRef(true);
 
-  useEffect(()=> ()=> clearInterval(timerRef.current), []);
+  useEffect(()=> ()=>{ mountedRef.current = false; clearInterval(timerRef.current); }, []);
 
   const teamA = clubs.find(c=>c.id===idA) || clubs[0];
   const teamB = clubs.find(c=>c.id===idB) || clubs[1] || clubs[0];
 
   const startMatch = () => {
+    if(!teamA || !teamB) return;
     clearInterval(timerRef.current);
     const res = simulateMatch(teamA, teamB);
     setResult(res); setVisibleEvents([]); setClock(0); setPlaying(true);
     if(speed==="instant"){ setVisibleEvents(res.events); setClock(90); setPlaying(false); return; }
     let i = 0;
     timerRef.current = setInterval(()=>{
+      if(!mountedRef.current){ clearInterval(timerRef.current); return; }
       if(i >= res.events.length){ clearInterval(timerRef.current); setPlaying(false); return; }
       setVisibleEvents(prev => [...prev, res.events[i]]);
       setClock(res.events[i].minuto);
@@ -882,7 +989,7 @@ function EdicionTab({clubs, setClubs}){
   const deleteClub = (id) => { setClubs(clubs.filter(c=>c.id!==id)); if(editingId===id) setEditingId(null); };
   const addClub = () => {
     const idx = clubs.length;
-    const nuevo = buildClub(Date.now(), "Nuevo Club "+(idx+1), PALETA[idx%PALETA.length], 62, POSICIONES.map((_,i)=>"Jugador "+(i+1)));
+    const nuevo = buildClub(Date.now(), "Nuevo Club "+(idx+1), PALETA[idx%PALETA.length], 62, SQUAD_TEMPLATE.map((_,i)=>"Jugador "+(i+1)));
     setClubs([...clubs, nuevo]);
   };
 
@@ -938,7 +1045,7 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App/></ErrorBoundary>);
 </script>
 </body>
 </html>
