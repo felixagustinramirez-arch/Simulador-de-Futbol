@@ -3,647 +3,870 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Carrera Manager — Fase 1</title>
+<title>Dinastía — Modo Carrera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
   :root{
-    --pitch: #0F3D2E;
-    --pitch-deep: #0A2C21;
-    --paper: #EDE8DD;
-    --paper-dim: #E1DACB;
-    --ink: #1B1B16;
-    --ink-soft: #4B4A3F;
-    --gold: #C9A227;
-    --gold-soft: #E4C862;
-    --line: #3E6B52;
-    --danger: #A63D40;
-    --danger-soft: #E8D3D2;
-    --title-zone: #E4C862;
-    --relegation-zone: #E8D3D2;
+    --bg:#0A1410;
+    --surface:#10201A;
+    --surface-2:#17281F;
+    --line:rgba(243,241,231,0.09);
+    --line-strong:rgba(243,241,231,0.16);
+    --pitch:#245C3A;
+    --pitch-light:#3E8F5B;
+    --amber:#E7B740;
+    --amber-dim:#9C812E;
+    --chalk:#F3F1E7;
+    --muted:#8FA398;
+    --red:#C1503F;
+    --radius:3px;
   }
   *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
   body{
-    margin:0;
-    background: var(--pitch);
-    background-image:
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 80px);
-    color: var(--ink);
-    font-family: 'Inter', sans-serif;
+    background:
+      radial-gradient(ellipse at top, rgba(62,143,91,0.10), transparent 55%),
+      var(--bg);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
     min-height:100vh;
   }
-  h1,h2,h3,.display{
-    font-family:'Oswald', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  .mono{ font-family:'IBM Plex Mono', monospace; }
-  #root{ max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  .num{ font-family:'JetBrains Mono', monospace; font-weight:700; }
+  .display{ font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.03em; }
 
-  .masthead{
-    display:flex; align-items:baseline; justify-content:space-between;
-    border-bottom: 2px solid var(--gold);
-    padding-bottom: 12px; margin-bottom: 24px;
+  /* ---------- Setup ---------- */
+  .setup-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
   }
-  .masthead h1{ color: var(--paper); font-size: 28px; margin:0; font-weight:700; }
-  .masthead .eyebrow{ color: var(--gold-soft); font-size: 11px; letter-spacing:0.18em; margin-bottom:4px; }
-  .masthead .season-tag{ color: var(--paper-dim); font-size:13px; }
+  .setup-card{
+    width:100%; max-width:480px; background:var(--surface);
+    border:1px solid var(--line-strong); padding:36px 32px;
+    position:relative;
+  }
+  .setup-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:repeating-linear-gradient(90deg, var(--amber) 0 18px, transparent 18px 26px);
+    opacity:0.7;
+  }
+  .setup-title{ font-size:13px; color:var(--amber); letter-spacing:0.18em; margin:0 0 6px; }
+  .setup-h1{ font-family:'Oswald',sans-serif; font-size:34px; margin:0 0 24px; text-transform:uppercase; letter-spacing:0.01em; }
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+  .field input[type=text]{
+    width:100%; background:var(--bg); border:1px solid var(--line-strong); color:var(--chalk);
+    padding:11px 12px; font-family:'Inter',sans-serif; font-size:15px; border-radius:var(--radius);
+  }
+  .field input[type=text]:focus{ outline:none; border-color:var(--amber); }
+  .swatches{ display:flex; gap:8px; flex-wrap:wrap; }
+  .swatch{
+    width:32px; height:32px; border-radius:var(--radius); cursor:pointer; border:2px solid transparent;
+  }
+  .swatch.active{ border-color:var(--chalk); }
+  .btn{
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.06em;
+    background:var(--amber); color:#161005; border:none; padding:13px 22px;
+    font-size:15px; font-weight:600; cursor:pointer; border-radius:var(--radius);
+    transition:filter .15s ease;
+  }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn-ghost{
+    background:transparent; color:var(--chalk); border:1px solid var(--line-strong);
+  }
+  .btn-ghost:hover{ border-color:var(--amber); filter:none; }
+  .btn-block{ width:100%; }
+  .hint{ font-size:12px; color:var(--muted); margin-top:20px; line-height:1.5; }
 
-  .panel{
-    background: var(--paper);
-    border-radius: 3px;
-    box-shadow: 0 6px 0 rgba(0,0,0,0.18);
-    padding: 22px 24px;
+  /* ---------- App shell ---------- */
+  .app{ max-width:1080px; margin:0 auto; padding:0 20px 60px; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 0 16px; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; gap:14px;
   }
+  .club-id{ display:flex; align-items:center; gap:12px; }
+  .crest{
+    width:42px; height:42px; border-radius:var(--radius); display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:15px; color:#0A1410;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.25);
+  }
+  .club-meta .club-name{ font-family:'Oswald',sans-serif; font-size:19px; text-transform:uppercase; line-height:1.1; }
+  .club-meta .manager-name{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .topbar-right{ display:flex; align-items:center; gap:16px; }
+  .season-tag{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .reset-link{ font-size:12px; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .reset-link:hover{ color:var(--red); }
 
-  /* ---- Setup screen ---- */
-  .setup-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
-  @media (max-width: 800px){ .setup-grid{ grid-template-columns: 1fr; } }
-  label{ display:block; font-size: 12px; text-transform:uppercase; letter-spacing:0.08em; color: var(--ink-soft); margin: 16px 0 6px; font-weight:600;}
-  label:first-child{ margin-top:0; }
-  input[type=text]{
-    width:100%; padding:10px 12px; border:1px solid #C9C2AE; border-radius:2px;
-    background:#fff; font-family:'Inter'; font-size:15px; color:var(--ink);
+  /* ---------- Matchday ticker (signature element) ---------- */
+  .ticker{
+    margin-top:16px; border:1px solid var(--line); background:var(--surface);
+    display:flex; align-items:stretch; overflow:hidden; border-radius:var(--radius);
   }
-  input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
-  .color-row{ display:flex; gap:14px; }
-  .color-field{ flex:1; }
-  input[type=color]{ width:100%; height:38px; border:1px solid #C9C2AE; border-radius:2px; padding:2px; background:#fff; cursor:pointer; }
+  .ticker-label{
+    background:var(--pitch); color:var(--chalk); font-family:'Oswald',sans-serif;
+    font-size:12px; letter-spacing:0.1em; text-transform:uppercase; padding:0 14px;
+    display:flex; align-items:center; white-space:nowrap; flex-shrink:0;
+  }
+  .ticker-scroll{ display:flex; overflow-x:auto; }
+  .ticker-item{
+    display:flex; align-items:center; gap:7px; padding:9px 16px; border-right:1px solid var(--line);
+    white-space:nowrap; font-size:13px; flex-shrink:0;
+  }
+  .ticker-item.mine{ background:rgba(231,183,64,0.10); }
+  .ticker-item .t{ color:var(--muted); }
+  .ticker-item .sep{ color:var(--muted); }
+  .ticker-item .score{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--amber); }
 
-  .pattern-options, .tier-options{ display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
-  .tier-options{ grid-template-columns: 1fr; }
-  .chip{
-    border:1.5px solid #C9C2AE; border-radius:2px; padding:8px 10px; text-align:center;
-    cursor:pointer; font-size:13px; background:#fff; color:var(--ink-soft); transition: all .12s;
+  /* ---------- Tabs ---------- */
+  .tabs{ display:flex; gap:2px; margin:22px 0 20px; border-bottom:1px solid var(--line); }
+  .tab{
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.06em; font-size:14px;
+    padding:11px 4px; margin-right:22px; background:none; border:none; color:var(--muted); cursor:pointer;
+    border-bottom:2px solid transparent; position:relative; top:1px;
   }
-  .chip.selected{ border-color: var(--pitch); background: var(--pitch); color: var(--paper); font-weight:600; }
-  .tier-chip{ text-align:left; display:flex; justify-content:space-between; align-items:center; padding:12px; }
-  .tier-chip .tier-name{ font-weight:600; font-size:14px; }
-  .tier-chip .tier-detail{ font-size:12px; color: var(--ink-soft); font-family:'IBM Plex Mono'; }
-  .tier-chip.selected .tier-detail{ color: var(--paper-dim); }
+  .tab.active{ color:var(--chalk); border-bottom-color:var(--amber); }
+  .tab:hover:not(.active){ color:var(--chalk); }
 
-  .crest-card{
-    background: var(--pitch-deep); border-radius:3px; padding:24px; text-align:center;
-    display:flex; flex-direction:column; align-items:center; gap:14px;
-    border: 1px solid var(--line);
-  }
-  .crest-card .id-label{ color: var(--gold-soft); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; }
-  .crest-card .club-name{ color: var(--paper); font-size: 20px; font-weight:600; min-height:26px; }
-  .crest-card .club-meta{ color: var(--paper-dim); font-size:12px; font-family:'IBM Plex Mono'; }
+  /* ---------- Cards / grid ---------- */
+  .grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; }
+  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--surface); border:1px solid var(--line); padding:20px; border-radius:var(--radius); }
+  .card h3{ margin:0 0 14px; font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; letter-spacing:0.1em; color:var(--muted); }
 
-  button{
-    font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.05em;
-    border:none; border-radius:2px; padding:12px 20px; font-size:14px; font-weight:600;
-    cursor:pointer; transition: transform .08s;
-  }
-  button:active{ transform: translateY(1px); }
-  button:disabled{ opacity:0.45; cursor:not-allowed; }
-  .btn-primary{ background: var(--gold); color: var(--ink); }
-  .btn-primary:hover:not(:disabled){ background: var(--gold-soft); }
-  .btn-secondary{ background: var(--pitch); color: var(--paper); }
-  .btn-secondary:hover:not(:disabled){ background: var(--pitch-deep); }
-  .btn-ghost{ background: transparent; color: var(--ink-soft); border: 1.5px solid #C9C2AE; }
-  .btn-ghost:hover:not(:disabled){ border-color: var(--ink-soft); }
-  .btn-row{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .next-match{ display:flex; align-items:center; justify-content:space-between; }
+  .nm-team{ text-align:center; flex:1; }
+  .nm-crest{ width:52px; height:52px; border-radius:var(--radius); margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-weight:700; color:#0A1410; }
+  .nm-name{ font-size:13px; }
+  .nm-vs{ font-family:'Oswald',sans-serif; color:var(--amber); font-size:13px; letter-spacing:0.08em; padding:0 10px; text-align:center; }
+  .nm-venue{ display:block; font-size:10px; color:var(--muted); margin-top:2px; }
 
-  /* ---- Dashboard ---- */
-  .club-bar{
-    display:flex; align-items:center; gap:16px; background: var(--pitch-deep);
-    border-radius:3px; padding:14px 20px; margin-bottom:18px; border:1px solid var(--line);
-  }
-  .club-bar .info{ flex:1; }
-  .club-bar .name{ color: var(--paper); font-size:19px; font-weight:600; margin:0; }
-  .club-bar .sub{ color: var(--gold-soft); font-size:12px; font-family:'IBM Plex Mono'; margin-top:2px; }
-  .club-bar .budget{ text-align:right; }
-  .club-bar .budget .amount{ color: var(--gold-soft); font-size:18px; font-family:'IBM Plex Mono'; font-weight:600; }
-  .club-bar .budget .label{ color: var(--paper-dim); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; }
+  .stat-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .stat-row:last-child{ border-bottom:none; }
+  .stat-row .label{ color:var(--muted); }
+  .stat-row .value{ font-family:'JetBrains Mono',monospace; font-weight:700; }
 
-  .tabs{ display:flex; gap:6px; margin-bottom:14px; }
-  .tab-btn{
-    background: transparent; color: var(--paper-dim); border:1.5px solid var(--line);
-    padding:8px 16px; font-size:12px;
+  .form-strip{ display:flex; gap:5px; margin-top:6px; }
+  .form-pill{
+    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; font-family:'JetBrains Mono',monospace; color:#0A1410;
   }
-  .tab-btn.active{ background: var(--paper); color: var(--pitch); border-color: var(--paper); }
+  .form-w{ background:var(--pitch-light); }
+  .form-d{ background:var(--muted); }
+  .form-l{ background:var(--red); color:var(--chalk); }
 
-  table{ width:100%; border-collapse: collapse; font-size:13px; }
-  th{
-    text-align:left; font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase;
-    letter-spacing:0.06em; color: var(--ink-soft); padding:8px 6px; border-bottom:2px solid var(--pitch);
+  /* ---------- Tables ---------- */
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{
+    text-align:left; font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:11px;
+    letter-spacing:0.06em; color:var(--muted); padding:8px 8px; border-bottom:1px solid var(--line-strong);
+    cursor:pointer; user-select:none; white-space:nowrap;
   }
-  td{ padding:8px 6px; border-bottom:1px solid #DAD3C0; font-family:'IBM Plex Mono'; }
-  td.team-name{ font-family:'Inter'; font-weight:500; }
-  tr.you td{ background: rgba(201,162,39,0.18); font-weight:600; }
-  tr.zone-title td.pos-cell{ box-shadow: inset 3px 0 0 var(--title-zone); }
-  tr.zone-releg td.pos-cell{ box-shadow: inset 3px 0 0 var(--danger); }
-  .legend{ display:flex; gap:18px; margin-top:10px; font-size:11px; color: var(--ink-soft); }
-  .legend span{ display:inline-flex; align-items:center; gap:6px; }
-  .dot{ width:9px; height:9px; border-radius:1px; display:inline-block; }
+  thead th.num-col, tbody td.num-col{ text-align:center; }
+  thead th:hover{ color:var(--chalk); }
+  tbody td{ padding:9px 8px; border-bottom:1px solid var(--line); }
+  tbody tr:hover{ background:rgba(243,241,231,0.03); }
+  tbody tr.mine{ background:rgba(231,183,64,0.08); }
+  tbody tr.mine td:first-child{ box-shadow: inset 3px 0 0 var(--amber); }
+  .pos-tag{
+    display:inline-block; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:700;
+    padding:2px 6px; border-radius:2px; background:var(--surface-2); color:var(--muted); border:1px solid var(--line-strong);
+  }
+  .rating{ font-family:'JetBrains Mono',monospace; font-weight:700; }
+  .rating.hi{ color:var(--pitch-light); }
+  .rating.mid{ color:var(--amber); }
+  .rating.lo{ color:var(--muted); }
 
-  .matchday-title{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .fixture-list{ display:flex; flex-direction:column; gap:6px; }
-  .fixture{
-    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:10px;
-    padding:9px 12px; background:#fff; border:1px solid #DAD3C0; border-radius:2px; font-size:13px;
-  }
-  .fixture.you{ border-color: var(--gold); border-width:1.5px; }
-  .fixture .home{ text-align:right; }
-  .fixture .away{ text-align:left; }
-  .fixture .score{
-    font-family:'IBM Plex Mono'; font-weight:600; background: var(--paper-dim);
-    padding:3px 10px; border-radius:2px; min-width:52px; text-align:center;
-  }
-  .fixture .score.pending{ color: var(--ink-soft); font-weight:400; }
+  /* ---------- Table screen ---------- */
+  .table-wrap{ overflow-x:auto; }
+  .rank-cell{ display:flex; align-items:center; gap:8px; }
+  .rank-num{ width:18px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+  .mini-crest{ width:20px; height:20px; border-radius:2px; flex-shrink:0; }
 
-  .banner{
-    background: var(--gold); color: var(--ink); padding:16px 20px; border-radius:3px;
-    margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  /* ---------- Calendar ---------- */
+  .matchday-group{ margin-bottom:22px; }
+  .matchday-title{
+    font-family:'Oswald',sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:8px;
   }
-  .banner h3{ margin:0; font-size:16px; }
-  .banner p{ margin:2px 0 0; font-size:12px; font-family:'IBM Plex Mono'; }
-
-  .history-item{
-    display:flex; justify-content:space-between; padding:10px 4px; border-bottom:1px solid #DAD3C0; font-size:13px;
+  .matchday-title .badge{ background:var(--pitch); color:var(--chalk); font-size:10px; padding:2px 7px; border-radius:2px; }
+  .fixture-row{
+    display:flex; align-items:center; padding:9px 12px; background:var(--surface); border:1px solid var(--line);
+    margin-bottom:5px; border-radius:var(--radius); font-size:13px;
   }
-  .history-item .season-num{ font-family:'IBM Plex Mono'; color: var(--ink-soft); }
+  .fixture-row.mine{ border-color:var(--amber-dim); }
+  .fixture-home{ flex:1; text-align:right; padding-right:12px; }
+  .fixture-away{ flex:1; padding-left:12px; }
+  .fixture-score{
+    font-family:'JetBrains Mono',monospace; font-weight:700; background:var(--surface-2); padding:3px 10px;
+    border-radius:2px; min-width:52px; text-align:center; color:var(--amber);
+  }
+  .fixture-score.pending{ color:var(--muted); font-family:'Oswald',sans-serif; font-weight:400; font-size:11px; }
 
-  .io-row{ display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px dashed #C9C2AE; }
-  .footnote{ color: var(--paper-dim); font-size:11px; margin-top:18px; text-align:center; }
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(6,10,8,0.78); display:flex; align-items:center; justify-content:center;
+    padding:20px; z-index:50;
+  }
+  .modal{ background:var(--surface); border:1px solid var(--line-strong); max-width:420px; width:100%; padding:28px; border-radius:var(--radius); }
+  .modal-eyebrow{ font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:10px; }
+  .modal-score{
+    display:flex; align-items:center; justify-content:center; gap:18px; margin:18px 0 22px;
+  }
+  .modal-score .team{ flex:1; text-align:center; font-size:13px; }
+  .modal-score .score{ font-family:'Oswald',sans-serif; font-size:40px; letter-spacing:0.02em; }
+  .scorers{ font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:22px; }
+  .scorers b{ color:var(--chalk); font-weight:600; }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--muted); font-size:13px; }
+  .footnote{ text-align:center; font-size:11px; color:var(--muted); margin-top:40px; opacity:0.7; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
-const {useState, useRef, useMemo} = React;
+const { useState, useEffect, useMemo } = React;
 
-/* ---------- Data helpers ---------- */
+/* ===================== DATA / GENERATION ===================== */
 
-const PREFIXES = ["Real","Atlético","Deportivo","Unión","Sporting","Racing","Club","Cultural","Gimnástico","Juventud","Nacional","Provincial","Estrella","Alianza"];
-const PLACES = ["Río Claro","Puerto Alto","Villa Nueva","San Marín","Costa Verde","Monte Bello","Los Álamos","Bahía Sur","Cerro Alto","Valle Hondo","Playa Dorada","Sierra Norte","Campo Grande","El Progreso","Nueva Esperanza","Punta Fría","Loma Larga","Río Seco"];
+const SAVE_KEY = 'dinastia_manager_save_v1';
 
-function generateClubNames(count, excludeName){
-  const used = new Set([excludeName]);
-  const names = [];
-  while(names.length < count){
-    const p = PREFIXES[Math.floor(Math.random()*PREFIXES.length)];
-    const place = PLACES[Math.floor(Math.random()*PLACES.length)];
-    const style = Math.random();
-    let name = style < 0.6 ? `${p} ${place}` : `${place} FC`;
-    if(!used.has(name)){ used.add(name); names.push(name); }
-  }
-  return names;
-}
+const COLORS = ['#245C3A','#1F4E8C','#8C1F2B','#7A3E12','#4B2E7A','#0F6B6B','#8C6D1F','#5A1F5C'];
 
-const TIERS = {
-  amateur:   { label: "Amateur",     range: [35,50], budget: 500000,    spread: 18 },
-  regional:  { label: "Regional",    range: [50,65], budget: 2000000,   spread: 20 },
-  profesional: { label: "Profesional", range: [60,75], budget: 8000000, spread: 20 },
-  elite:     { label: "Élite",       range: [75,90], budget: 25000000,  spread: 18 },
-};
+const FIRST_NAMES = ["Mateo","Bruno","Thiago","Iker","Diego","Santiago","Emiliano","Franco","Nicolás","Agustín","Joaquín","Lucas","Máximo","Facundo","Gonzalo","Rodrigo","Martín","Ezequiel","Federico","Cristian","Tomás","Ramiro","Ignacio","Julián","Alan","Kevin","Bautista","Valentino","Ciro","Benjamín","Darío","Adrián","Sebastián","Matías","Pablo","Andrés","Leandro","Nahuel","Marcos","Damián","Rafael","Enzo","Bautista","Milton","Elías"];
+const LAST_NAMES = ["Gómez","Fernández","Rodríguez","López","Martínez","García","Pérez","Sánchez","Romero","Sosa","Torres","Flores","Acosta","Benítez","Molina","Ortiz","Silva","Herrera","Aguirre","Medina","Cabrera","Núñez","Rojas","Ibáñez","Bravo","Vega","Correa","Ferreyra","Godoy","Luna","Paredes","Quiroga","Suárez","Vera","Zapata","Campos","Duarte","Escobar","Funes","Giménez"];
 
-const PATTERNS = ["franjas","cuartos","diagonal","liso"];
+const CPU_CLUB_NAMES = ["Real Cepeda","Atlético Bravo","Deportivo Sur","CD Halcón","Unión Norte","Estrella FC","Los Andes CF","Puerto Vega","Rayo del Sol","Club Cóndor","Villa Fénix","Náutico Este"];
 
-function fmtMoney(n){
-  return "$" + Math.round(n).toLocaleString("es-AR");
-}
+const POSITIONS = [
+  {code:'POR', label:'Portero', count:3, weight:0},
+  {code:'DFC', label:'Defensa central', count:4, weight:0.5},
+  {code:'LAT', label:'Lateral', count:4, weight:1},
+  {code:'MCD', label:'Mediocentro defensivo', count:2, weight:1},
+  {code:'MC', label:'Mediocentro', count:3, weight:2},
+  {code:'MCO', label:'Mediapunta', count:2, weight:3},
+  {code:'EXT', label:'Extremo', count:3, weight:3},
+  {code:'DC', label:'Delantero centro', count:2, weight:5},
+];
 
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,10); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 
-function poissonRandom(lambda){
-  const L = Math.exp(-lambda);
-  let k = 0, p = 1;
-  do{ k++; p *= Math.random(); } while(p > L);
-  return k - 1;
+function genPlayerName(){
+  return pick(FIRST_NAMES) + ' ' + pick(LAST_NAMES);
 }
 
-function simulateScore(strengthA, strengthB, isHomeA){
-  const base = 1.3;
-  const homeBonus = isHomeA ? 0.22 : -0.1;
-  const diffA = (strengthA - strengthB) / 26;
-  const diffB = (strengthB - strengthA) / 26;
-  const lambdaA = Math.min(4, Math.max(0.15, base + diffA + homeBonus));
-  const lambdaB = Math.min(4, Math.max(0.15, base + diffB - homeBonus*0.4));
-  return [poissonRandom(lambdaA), poissonRandom(lambdaB)];
+function genSquad(baseline){
+  const players = [];
+  POSITIONS.forEach(pos=>{
+    for(let i=0;i<pos.count;i++){
+      const depthPenalty = i*3;
+      let overall = clamp(baseline + randInt(-6,6) - depthPenalty, 52, 90);
+      if(Math.random() < 0.08) overall = clamp(overall+6, 52, 92); // figura
+      const age = randInt(17,35);
+      const potential = age < 23 ? clamp(overall + randInt(0,10), overall, 94) : overall;
+      players.push({
+        id: uid('p'),
+        name: genPlayerName(),
+        position: pos.code,
+        age, overall, potential,
+        goals:0, assists:0, apps:0,
+      });
+    }
+  });
+  return players;
+}
+
+function newClub(name, baseline, isUser){
+  return {
+    id: uid('c'),
+    name,
+    color: pick(COLORS),
+    isUser: !!isUser,
+    players: genSquad(baseline),
+    stats: { played:0, won:0, drawn:0, lost:0, gf:0, ga:0, pts:0 },
+    form: [], // last results 'W'/'D'/'L'
+  };
+}
+
+function initials(name){
+  return name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
 }
 
 function generateRoundRobin(teamIds){
-  let arr = teamIds.slice();
-  if(arr.length % 2 !== 0) arr.push(null);
-  const n = arr.length;
+  let teams = [...teamIds];
+  if(teams.length % 2 !== 0) teams.push(null);
+  const n = teams.length;
+  const rounds = n - 1;
   const half = n/2;
-  const rounds = [];
-  for(let r=0;r<n-1;r++){
-    const roundFixtures = [];
+  let arr = teams.slice();
+  let schedule = [];
+  for(let r=0;r<rounds;r++){
+    let roundMatches = [];
     for(let i=0;i<half;i++){
-      const home = arr[i], away = arr[n-1-i];
-      if(home!==null && away!==null){
-        roundFixtures.push(r%2===0 ? [home,away] : [away,home]);
+      const t1 = arr[i], t2 = arr[n-1-i];
+      if(t1 !== null && t2 !== null){
+        roundMatches.push(r % 2 === 0 ? [t1,t2] : [t2,t1]);
       }
     }
-    rounds.push(roundFixtures);
+    schedule.push(roundMatches);
     const fixed = arr[0];
     const rest = arr.slice(1);
     rest.unshift(rest.pop());
     arr = [fixed, ...rest];
   }
-  const secondLeg = rounds.map(round => round.map(([h,a]) => [a,h]));
-  return [...rounds, ...secondLeg];
+  const secondLeg = schedule.map(round => round.map(([h,a])=>[a,h]));
+  return [...schedule, ...secondLeg];
 }
 
-function freshStandingsRow(team){
-  return { id: team.id, name: team.name, isYou: !!team.isYou,
-    pj:0, g:0, e:0, p:0, gf:0, gc:0, pts:0 };
+function buildCalendar(clubs){
+  const rounds = generateRoundRobin(clubs.map(c=>c.id));
+  return rounds.map((matches, idx)=>({
+    matchday: idx+1,
+    matches: matches.map(([homeId,awayId])=>({
+      id: uid('m'), homeId, awayId, played:false, homeGoals:null, awayGoals:null, scorers:[],
+    })),
+  }));
 }
 
-function computeStandings(teams, fixtures, resultsByRound, uptoRound){
-  const table = {};
-  teams.forEach(t => table[t.id] = freshStandingsRow(t));
-  for(let r=0; r<uptoRound; r++){
-    const round = fixtures[r]; const results = resultsByRound[r];
-    if(!round || !results) continue;
-    round.forEach(([homeId,awayId], idx) => {
-      const [gh, ga] = results[idx];
-      const home = table[homeId], away = table[awayId];
-      home.pj++; away.pj++;
-      home.gf += gh; home.gc += ga;
-      away.gf += ga; away.gc += gh;
-      if(gh > ga){ home.g++; home.pts+=3; away.p++; }
-      else if(gh < ga){ away.g++; away.pts+=3; home.p++; }
-      else { home.e++; away.e++; home.pts++; away.pts++; }
+function startNewCareer(clubName, managerName, color){
+  const userClub = newClub(clubName || 'CF Fénix', 76, true);
+  userClub.color = color || COLORS[0];
+  const shuffledNames = [...CPU_CLUB_NAMES].sort(()=>Math.random()-0.5).slice(0,9);
+  const cpuClubs = shuffledNames.map(n => newClub(n, randInt(64,84), false));
+  const clubs = [userClub, ...cpuClubs];
+  const calendar = buildCalendar(clubs);
+  return {
+    managerName: managerName || 'Entrenador',
+    season: 1,
+    currentMatchday: 1,
+    totalMatchdays: calendar.length,
+    clubs,
+    calendar,
+  };
+}
+
+/* ===================== SIMULATION ===================== */
+
+function eleven(club){
+  return [...club.players].sort((a,b)=>b.overall-a.overall).slice(0,11);
+}
+function strength(club){
+  const xi = eleven(club);
+  return xi.reduce((s,p)=>s+p.overall,0)/xi.length;
+}
+function poissonRandom(lambda){
+  const L = Math.exp(-lambda);
+  let k=0, p=1;
+  do{ k++; p*=Math.random(); } while(p>L);
+  return k-1;
+}
+function expectedGoals(own, opp, isHome){
+  let base = 1.25 + (own-opp)*0.055 + (isHome?0.18:-0.05);
+  return clamp(base, 0.25, 3.8);
+}
+function weightedScorer(xi){
+  const pool = [];
+  xi.forEach(p=>{
+    const posDef = POSITIONS.find(d=>d.code===p.position);
+    const w = Math.max(0.2, (posDef?posDef.weight:1)) * (p.overall/70);
+    pool.push({p, w});
+  });
+  const total = pool.reduce((s,x)=>s+x.w,0);
+  let r = Math.random()*total;
+  for(const x of pool){ r -= x.w; if(r<=0) return x.p; }
+  return pool[pool.length-1].p;
+}
+
+function simulateMatch(homeClub, awayClub){
+  const hXi = eleven(homeClub), aXi = eleven(awayClub);
+  const hS = strength(homeClub), aS = strength(awayClub);
+  const hGoals = poissonRandom(expectedGoals(hS, aS, true));
+  const aGoals = poissonRandom(expectedGoals(aS, hS, false));
+  const scorers = [];
+  for(let i=0;i<hGoals;i++) scorers.push({clubId:homeClub.id, player: weightedScorer(hXi)});
+  for(let i=0;i<aGoals;i++) scorers.push({clubId:awayClub.id, player: weightedScorer(aXi)});
+  return { homeGoals:hGoals, awayGoals:aGoals, scorers, hXi, aXi };
+}
+
+function applyResult(clubs, match, result){
+  const clubsById = Object.fromEntries(clubs.map(c=>[c.id,c]));
+  const home = clubsById[match.homeId], away = clubsById[match.awayId];
+
+  const bump = (club, xi, goalsFor, goalsAgainst, oppId, scorers) => {
+    xi.forEach(xp=>{
+      const target = club.players.find(p=>p.id===xp.id);
+      if(target) target.apps += 1;
     });
-  }
-  return Object.values(table).sort((a,b) =>
-    b.pts - a.pts || (b.gf-b.gc) - (a.gf-a.gc) || b.gf - a.gf || a.name.localeCompare(b.name)
+    scorers.filter(s=>s.clubId===club.id).forEach(s=>{
+      const target = club.players.find(p=>p.id===s.player.id);
+      if(target) target.goals += 1;
+    });
+    club.stats.played += 1;
+    club.stats.gf += goalsFor;
+    club.stats.ga += goalsAgainst;
+    let res;
+    if(goalsFor>goalsAgainst){ club.stats.won++; club.stats.pts+=3; res='W'; }
+    else if(goalsFor<goalsAgainst){ club.stats.lost++; res='L'; }
+    else { club.stats.drawn++; club.stats.pts+=1; res='D'; }
+    club.form = [...club.form.slice(-4), res];
+  };
+
+  bump(home, result.hXi, result.homeGoals, result.awayGoals, away.id, result.scorers);
+  bump(away, result.aXi, result.awayGoals, result.homeGoals, home.id, result.scorers);
+}
+
+/* ===================== UI HELPERS ===================== */
+
+function Crest({club, size}){
+  const s = size || 42;
+  return (
+    <div className="crest" style={{width:s, height:s, background:club.color, fontSize:s*0.34}}>
+      {initials(club.name)}
+    </div>
   );
 }
 
-/* ---------- Crest ---------- */
-
-function Crest({name, primary, secondary, pattern, size=96}){
-  const initials = (name||"").split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "CM";
-  const clipId = "shield-" + primary.slice(1) + secondary.slice(1) + pattern;
-  return (
-    <svg width={size} height={size*1.12} viewBox="0 0 100 112">
-      <defs>
-        <clipPath id={clipId}>
-          <path d="M50 2 L95 14 V55 C95 85 75 102 50 110 C25 102 5 85 5 55 V14 Z" />
-        </clipPath>
-      </defs>
-      <g clipPath={`url(#${clipId})`}>
-        <rect x="0" y="0" width="100" height="112" fill={secondary} />
-        {pattern === "franjas" && [0,1,2,3,4].map(i => (
-          <rect key={i} x={i*22-6} y="0" width="11" height="112" fill={primary} />
-        ))}
-        {pattern === "cuartos" && (
-          <>
-            <rect x="0" y="0" width="50" height="56" fill={primary} />
-            <rect x="50" y="56" width="50" height="56" fill={primary} />
-          </>
-        )}
-        {pattern === "diagonal" && (
-          <polygon points="0,0 100,0 0,112" fill={primary} />
-        )}
-        {pattern === "liso" && (
-          <rect x="8" y="8" width="84" height="96" fill="none" stroke={primary} strokeWidth="6" />
-        )}
-      </g>
-      <path d="M50 2 L95 14 V55 C95 85 75 102 50 110 C25 102 5 85 5 55 V14 Z"
-            fill="none" stroke="#1B1B16" strokeOpacity="0.35" strokeWidth="2" />
-      <text x="50" y="63" textAnchor="middle" fontFamily="Oswald, sans-serif" fontWeight="700"
-            fontSize="30" fill={pattern==="liso" ? primary : "#fff"}
-            style={{paintOrder:"stroke", stroke:"rgba(0,0,0,0.35)", strokeWidth:1}}>
-        {initials}
-      </text>
-    </svg>
-  );
+function ratingClass(v){
+  if(v>=80) return 'hi';
+  if(v>=70) return 'mid';
+  return 'lo';
 }
 
-/* ---------- Setup Screen ---------- */
+function standings(clubs){
+  return [...clubs].sort((a,b)=>{
+    if(b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
+    const gdA = a.stats.gf - a.stats.ga, gdB = b.stats.gf - b.stats.ga;
+    if(gdB !== gdA) return gdB - gdA;
+    return b.stats.gf - a.stats.gf;
+  });
+}
 
-function SetupScreen({onCreate}){
-  const [name, setName] = useState("");
-  const [city, setCity] = useState("");
-  const [primary, setPrimary] = useState("#0F3D2E");
-  const [secondary, setSecondary] = useState("#EDE8DD");
-  const [pattern, setPattern] = useState("franjas");
-  const [tier, setTier] = useState("regional");
+/* ===================== SCREENS ===================== */
 
-  const canCreate = name.trim().length > 1;
+function Setup({ onStart }){
+  const [clubName, setClubName] = useState('');
+  const [managerName, setManagerName] = useState('');
+  const [color, setColor] = useState(COLORS[0]);
 
   return (
-    <div className="panel">
-      <h2 style={{marginTop:0, color:'var(--pitch)'}}>Fundación del club</h2>
-      <p style={{color:'var(--ink-soft)', fontSize:14, marginTop:-8}}>
-        Elegí el nombre, los colores y el nivel de tu club para arrancar la carrera.
-      </p>
-      <div className="setup-grid">
-        <div>
+    <div className="setup-wrap">
+      <div className="setup-card">
+        <div className="setup-title">Nueva carrera</div>
+        <h1 className="setup-h1">Dinastía</h1>
+
+        <div className="field">
           <label>Nombre del club</label>
-          <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Ej: Unión Río Claro" maxLength={30}/>
-
-          <label>Ciudad</label>
-          <input type="text" value={city} onChange={e=>setCity(e.target.value)} placeholder="Ej: Río Claro" maxLength={24}/>
-
-          <label>Colores</label>
-          <div className="color-row">
-            <div className="color-field">
-              <input type="color" value={primary} onChange={e=>setPrimary(e.target.value)} />
-            </div>
-            <div className="color-field">
-              <input type="color" value={secondary} onChange={e=>setSecondary(e.target.value)} />
-            </div>
-          </div>
-
-          <label>Diseño del escudo</label>
-          <div className="pattern-options">
-            {PATTERNS.map(p => (
-              <div key={p} className={"chip" + (pattern===p ? " selected" : "")} onClick={()=>setPattern(p)}>
-                {p}
-              </div>
-            ))}
-          </div>
-
-          <label>Nivel de club</label>
-          <div className="tier-options">
-            {Object.entries(TIERS).map(([key,t]) => (
-              <div key={key} className={"chip tier-chip" + (tier===key ? " selected" : "")} onClick={()=>setTier(key)}>
-                <span className="tier-name">{t.label}</span>
-                <span className="tier-detail">fuerza {t.range[0]}–{t.range[1]} · {fmtMoney(t.budget)}</span>
-              </div>
+          <input type="text" value={clubName} placeholder="Ej. CF Fénix"
+            onChange={e=>setClubName(e.target.value)} maxLength={24}/>
+        </div>
+        <div className="field">
+          <label>Nombre del entrenador</label>
+          <input type="text" value={managerName} placeholder="Tu nombre"
+            onChange={e=>setManagerName(e.target.value)} maxLength={24}/>
+        </div>
+        <div className="field">
+          <label>Color del club</label>
+          <div className="swatches">
+            {COLORS.map(c=>(
+              <div key={c} className={"swatch"+(c===color?' active':'')}
+                style={{background:c}} onClick={()=>setColor(c)}/>
             ))}
           </div>
         </div>
 
-        <div className="crest-card">
-          <div className="id-label">Vista previa</div>
-          <Crest name={name} primary={primary} secondary={secondary} pattern={pattern} size={120}/>
-          <div className="club-name">{name || "Tu club"}</div>
-          <div className="club-meta">{city || "Ciudad"} · {TIERS[tier].label}</div>
-          <div className="club-meta">Presupuesto inicial: {fmtMoney(TIERS[tier].budget)}</div>
-        </div>
-      </div>
-
-      <div className="btn-row">
-        <button className="btn-primary" disabled={!canCreate}
-          onClick={()=>onCreate({name:name.trim(), city:city.trim()||"—", primary, secondary, pattern, tier})}>
-          Fundar club y armar liga
+        <button className="btn btn-block" onClick={()=>onStart(clubName.trim(), managerName.trim(), color)}>
+          Comenzar carrera
         </button>
+        <p className="hint">
+          Se generará una liga de 10 equipos (tu club + 9 rivales), plantillas de 23 jugadores
+          y un calendario de ida y vuelta. Etapa 1: motor de temporada y plantilla básicos —
+          las tácticas y el mercado de fichajes llegan en próximas etapas.
+        </p>
       </div>
     </div>
   );
 }
 
-/* ---------- Dashboard ---------- */
+function Ticker({ game, clubsById }){
+  const round = game.calendar[game.currentMatchday-1];
+  if(!round) return null;
+  return (
+    <div className="ticker">
+      <div className="ticker-label">Jornada {game.currentMatchday}</div>
+      <div className="ticker-scroll">
+        {round.matches.map(m=>{
+          const home = clubsById[m.homeId], away = clubsById[m.awayId];
+          const mine = home.isUser || away.isUser;
+          return (
+            <div key={m.id} className={"ticker-item"+(mine?' mine':'')}>
+              <span className="t">{initials(home.name)}</span>
+              {m.played
+                ? <span className="score">{m.homeGoals}-{m.awayGoals}</span>
+                : <span className="sep">vs</span>}
+              <span className="t">{initials(away.name)}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-function Dashboard({state, setState}){
-  const {club, teams, fixtures, resultsByRound, currentRound, history, season} = state;
-  const [tab, setTab] = useState("jornada");
-  const fileInputRef = useRef(null);
+function Dashboard({ game, userClub, clubsById, onSimulate }){
+  const table = standings(game.clubs);
+  const position = table.findIndex(c=>c.id===userClub.id) + 1;
+  const round = game.calendar[game.currentMatchday-1];
+  const myMatch = round ? round.matches.find(m=>m.homeId===userClub.id || m.awayId===userClub.id) : null;
+  const seasonOver = game.currentMatchday > game.totalMatchdays;
 
-  const totalRounds = fixtures.length;
-  const seasonOver = currentRound >= totalRounds;
-  const standings = useMemo(() => computeStandings(teams, fixtures, resultsByRound, currentRound),
-    [teams, fixtures, resultsByRound, currentRound]);
-
-  function simulateRound(uptoRound){
-    setState(prev => {
-      const newResults = prev.resultsByRound.slice();
-      let r = prev.currentRound;
-      while(r < uptoRound && r < prev.fixtures.length){
-        const teamsById = {}; prev.teams.forEach(t=>teamsById[t.id]=t);
-        const roundResults = prev.fixtures[r].map(([homeId,awayId]) => {
-          const home = teamsById[homeId], away = teamsById[awayId];
-          return simulateScore(home.strength, away.strength, true);
-        });
-        newResults[r] = roundResults;
-        r++;
-      }
-      return {...prev, resultsByRound: newResults, currentRound: r};
-    });
-  }
-
-  function startNewSeason(){
-    setState(prev => {
-      const finalStandings = computeStandings(prev.teams, prev.fixtures, prev.resultsByRound, prev.currentRound);
-      const yourPos = finalStandings.findIndex(r => r.isYou) + 1;
-      const champion = finalStandings[0];
-      const newHistory = [...prev.history, {
-        season: prev.season, yourPosition: yourPos, totalTeams: finalStandings.length,
-        championName: champion.name, championIsYou: champion.isYou
-      }];
-      const teamIds = prev.teams.map(t=>t.id);
-      const newFixtures = generateRoundRobin(teamIds);
-      return {...prev, fixtures: newFixtures, resultsByRound: [], currentRound: 0,
-        season: prev.season + 1, history: newHistory};
-    });
-  }
-
-  function exportSave(){
-    const data = JSON.stringify(state, null, 2);
-    const blob = new Blob([data], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `carrera-manager-${club.name.replace(/\s+/g,'_')}.json`;
-    a.click(); URL.revokeObjectURL(url);
-  }
-
-  function importSave(e){
-    const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = evt => {
-      try{
-        const parsed = JSON.parse(evt.target.result);
-        if(parsed && parsed.club && parsed.teams && parsed.fixtures){ setState(parsed); }
-        else alert("El archivo no tiene el formato esperado.");
-      }catch(err){ alert("No se pudo leer el archivo de guardado."); }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  }
-
-  const currentFixtures = !seasonOver ? fixtures[currentRound] : null;
-  const teamsById = {}; teams.forEach(t=>teamsById[t.id]=t);
+  const xi = eleven(userClub);
+  const avgXi = Math.round(xi.reduce((s,p)=>s+p.overall,0)/xi.length);
+  const topScorer = [...userClub.players].sort((a,b)=>b.goals-a.goals)[0];
 
   return (
     <div>
-      <div className="club-bar">
-        <Crest name={club.name} primary={club.primary} secondary={club.secondary} pattern={club.pattern} size={56}/>
-        <div className="info">
-          <p className="name">{club.name}</p>
-          <p className="sub">{club.city} · {TIERS[club.tier].label} · Temporada {season}</p>
-        </div>
-        <div className="budget">
-          <div className="amount">{fmtMoney(club.budget)}</div>
-          <div className="label">Presupuesto</div>
-        </div>
-      </div>
-
-      {seasonOver && (
-        <div className="banner">
-          <div>
-            <h3>Temporada {season} finalizada</h3>
-            <p>Campeón: {standings[0].name}{standings[0].isYou ? " (¡tu club!)" : ""} · Terminaste {standings.findIndex(r=>r.isYou)+1}° de {standings.length}</p>
-          </div>
-          <button className="btn-primary" onClick={startNewSeason}>Iniciar temporada {season+1}</button>
-        </div>
-      )}
-
-      <div className="tabs">
-        <button className={"tab-btn" + (tab==="jornada"?" active":"")} onClick={()=>setTab("jornada")}>Jornada</button>
-        <button className={"tab-btn" + (tab==="tabla"?" active":"")} onClick={()=>setTab("tabla")}>Tabla</button>
-        <button className={"tab-btn" + (tab==="historial"?" active":"")} onClick={()=>setTab("historial")}>Historial</button>
-      </div>
-
-      {tab === "jornada" && (
-        <div className="panel">
-          {!seasonOver ? (
-            <>
-              <div className="matchday-title">
-                <h3 style={{margin:0, color:'var(--pitch)'}}>Jornada {currentRound+1} de {totalRounds}</h3>
+      <div className="grid">
+        <div className="card">
+          <h3>Próximo partido</h3>
+          {seasonOver ? (
+            <p style={{color:'var(--muted)', fontSize:13}}>Temporada finalizada. Revisá la clasificación final abajo.</p>
+          ) : myMatch ? (
+            <React.Fragment>
+              <div className="next-match">
+                <div className="nm-team">
+                  <div className="nm-crest" style={{background:clubsById[myMatch.homeId].color}}>
+                    {initials(clubsById[myMatch.homeId].name)}
+                  </div>
+                  <div className="nm-name">{clubsById[myMatch.homeId].name}</div>
+                </div>
+                <div className="nm-vs">
+                  JORNADA {game.currentMatchday}
+                  <span className="nm-venue">{myMatch.homeId===userClub.id ? 'Local' : 'Visitante'}</span>
+                </div>
+                <div className="nm-team">
+                  <div className="nm-crest" style={{background:clubsById[myMatch.awayId].color}}>
+                    {initials(clubsById[myMatch.awayId].name)}
+                  </div>
+                  <div className="nm-name">{clubsById[myMatch.awayId].name}</div>
+                </div>
               </div>
-              <div className="fixture-list">
-                {currentFixtures.map(([homeId,awayId], idx) => {
-                  const home = teamsById[homeId], away = teamsById[awayId];
-                  const isYou = home.isYou || away.isYou;
-                  return (
-                    <div key={idx} className={"fixture" + (isYou ? " you" : "")}>
-                      <div className="home">{home.name}</div>
-                      <div className="score pending">vs</div>
-                      <div className="away">{away.name}</div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="btn-row">
-                <button className="btn-primary" onClick={()=>simulateRound(currentRound+1)}>Simular jornada</button>
-                <button className="btn-secondary" onClick={()=>simulateRound(totalRounds)}>Simular temporada completa</button>
-              </div>
-            </>
+              <button className="btn btn-block" style={{marginTop:20}} onClick={onSimulate}>
+                Jugar jornada {game.currentMatchday}
+              </button>
+            </React.Fragment>
           ) : (
-            <>
-              <h3 style={{marginTop:0, color:'var(--pitch)'}}>Última jornada jugada ({totalRounds})</h3>
-              <div className="fixture-list">
-                {fixtures[totalRounds-1].map(([homeId,awayId], idx) => {
-                  const home = teamsById[homeId], away = teamsById[awayId];
-                  const [gh,ga] = resultsByRound[totalRounds-1][idx];
-                  const isYou = home.isYou || away.isYou;
-                  return (
-                    <div key={idx} className={"fixture" + (isYou ? " you" : "")}>
-                      <div className="home">{home.name}</div>
-                      <div className="score">{gh} - {ga}</div>
-                      <div className="away">{away.name}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+            <button className="btn btn-block" onClick={onSimulate}>Simular jornada {game.currentMatchday}</button>
           )}
         </div>
-      )}
 
-      {tab === "tabla" && (
-        <div className="panel">
-          <h3 style={{marginTop:0, color:'var(--pitch)'}}>Tabla de posiciones</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th><th>Club</th><th>PJ</th><th>G</th><th>E</th><th>P</th>
-                <th>GF</th><th>GC</th><th>DG</th><th>Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((row, i) => {
-                const zone = i < 3 ? "zone-title" : (i >= standings.length-3 ? "zone-releg" : "");
-                return (
-                  <tr key={row.id} className={[row.isYou ? "you" : "", zone].filter(Boolean).join(" ")}>
-                    <td className="pos-cell">{i+1}</td>
-                    <td className="team-name">{row.name}</td>
-                    <td>{row.pj}</td><td>{row.g}</td><td>{row.e}</td><td>{row.p}</td>
-                    <td>{row.gf}</td><td>{row.gc}</td><td>{row.gf-row.gc}</td>
-                    <td>{row.pts}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div className="legend">
-            <span><span className="dot" style={{background:'var(--title-zone)'}}></span>Zona de título</span>
-            <span><span className="dot" style={{background:'var(--danger)'}}></span>Zona de descenso (referencial — activo desde Fase 4)</span>
+        <div className="card">
+          <h3>Estado del club</h3>
+          <div className="stat-row"><span className="label">Posición en la tabla</span><span className="value">{position}º / {game.clubs.length}</span></div>
+          <div className="stat-row"><span className="label">Puntos</span><span className="value">{userClub.stats.pts}</span></div>
+          <div className="stat-row"><span className="label">PJ / G / E / P</span><span className="value">{userClub.stats.played} / {userClub.stats.won} / {userClub.stats.drawn} / {userClub.stats.lost}</span></div>
+          <div className="stat-row"><span className="label">Media del once</span><span className="value">{avgXi}</span></div>
+          <div className="stat-row"><span className="label">Máximo goleador</span><span className="value">{topScorer && topScorer.goals>0 ? `${topScorer.name} (${topScorer.goals})` : '—'}</span></div>
+          <div style={{marginTop:12}}>
+            <span className="label" style={{fontSize:12, color:'var(--muted)'}}>Racha</span>
+            <div className="form-strip">
+              {userClub.form.length===0 && <span style={{fontSize:12,color:'var(--muted)'}}>Sin partidos aún</span>}
+              {userClub.form.map((r,i)=>(
+                <div key={i} className={"form-pill "+(r==='W'?'form-w':r==='D'?'form-d':'form-l')}>{r}</div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
-
-      {tab === "historial" && (
-        <div className="panel">
-          <h3 style={{marginTop:0, color:'var(--pitch)'}}>Historial de temporadas</h3>
-          {history.length === 0 ? (
-            <p style={{color:'var(--ink-soft)', fontSize:14}}>Todavía no completaste ninguna temporada.</p>
-          ) : (
-            history.slice().reverse().map(h => (
-              <div key={h.season} className="history-item">
-                <span className="season-num">Temporada {h.season}</span>
-                <span>Campeón: {h.championName}{h.championIsYou ? " (vos)" : ""}</span>
-                <span>Tu puesto: {h.yourPosition}° / {h.totalTeams}</span>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      <div className="io-row">
-        <button className="btn-ghost" onClick={exportSave}>Descargar progreso (.json)</button>
-        <button className="btn-ghost" onClick={()=>fileInputRef.current.click()}>Cargar progreso</button>
-        <input ref={fileInputRef} type="file" accept="application/json" style={{display:"none"}} onChange={importSave}/>
       </div>
     </div>
   );
 }
 
-/* ---------- App ---------- */
+function Squad({ club }){
+  const [sortKey, setSortKey] = useState('overall');
+  const [asc, setAsc] = useState(false);
+
+  const sorted = useMemo(()=>{
+    const arr = [...club.players];
+    arr.sort((a,b)=>{
+      let av=a[sortKey], bv=b[sortKey];
+      if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+      if(av<bv) return asc?-1:1;
+      if(av>bv) return asc?1:-1;
+      return 0;
+    });
+    return arr;
+  },[club.players, sortKey, asc]);
+
+  const toggleSort = (key)=>{
+    if(sortKey===key) setAsc(!asc);
+    else { setSortKey(key); setAsc(false); }
+  };
+
+  return (
+    <div className="card">
+      <h3>Plantilla ({club.players.length} jugadores)</h3>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onClick={()=>toggleSort('name')}>Jugador</th>
+              <th onClick={()=>toggleSort('position')}>Pos</th>
+              <th className="num-col" onClick={()=>toggleSort('age')}>Edad</th>
+              <th className="num-col" onClick={()=>toggleSort('overall')}>Media</th>
+              <th className="num-col" onClick={()=>toggleSort('potential')}>Pot.</th>
+              <th className="num-col" onClick={()=>toggleSort('goals')}>Goles</th>
+              <th className="num-col" onClick={()=>toggleSort('apps')}>PJ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(p=>(
+              <tr key={p.id}>
+                <td>{p.name}</td>
+                <td><span className="pos-tag">{p.position}</span></td>
+                <td className="num-col num">{p.age}</td>
+                <td className="num-col"><span className={"rating "+ratingClass(p.overall)}>{p.overall}</span></td>
+                <td className="num-col num" style={{color:'var(--muted)'}}>{p.potential}</td>
+                <td className="num-col num">{p.goals}</td>
+                <td className="num-col num">{p.apps}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function CalendarView({ game, clubsById, userClub }){
+  return (
+    <div>
+      {game.calendar.map(round=>(
+        <div className="matchday-group" key={round.matchday}>
+          <div className="matchday-title">
+            Jornada {round.matchday}
+            {round.matchday === game.currentMatchday && <span className="badge">Actual</span>}
+          </div>
+          {round.matches.map(m=>{
+            const home = clubsById[m.homeId], away = clubsById[m.awayId];
+            const mine = home.id===userClub.id || away.id===userClub.id;
+            return (
+              <div key={m.id} className={"fixture-row"+(mine?' mine':'')}>
+                <div className="fixture-home">{home.name}</div>
+                <div className={"fixture-score"+(m.played?'':' pending')}>
+                  {m.played ? `${m.homeGoals} - ${m.awayGoals}` : 'vs'}
+                </div>
+                <div className="fixture-away">{away.name}</div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TableView({ clubs, userClub }){
+  const table = standings(clubs);
+  return (
+    <div className="card">
+      <h3>Clasificación</h3>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Equipo</th>
+              <th className="num-col">PJ</th><th className="num-col">G</th><th className="num-col">E</th>
+              <th className="num-col">P</th><th className="num-col">GF</th><th className="num-col">GC</th>
+              <th className="num-col">DG</th><th className="num-col">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {table.map((c,i)=>(
+              <tr key={c.id} className={c.id===userClub.id?'mine':''}>
+                <td>
+                  <div className="rank-cell">
+                    <span className="rank-num">{i+1}</span>
+                    <div className="mini-crest" style={{background:c.color}}/>
+                    {c.name}
+                  </div>
+                </td>
+                <td/>
+                <td className="num-col num">{c.stats.played}</td>
+                <td className="num-col num">{c.stats.won}</td>
+                <td className="num-col num">{c.stats.drawn}</td>
+                <td className="num-col num">{c.stats.lost}</td>
+                <td className="num-col num">{c.stats.gf}</td>
+                <td className="num-col num">{c.stats.ga}</td>
+                <td className="num-col num">{c.stats.gf - c.stats.ga}</td>
+                <td className="num-col num" style={{color:'var(--amber)'}}>{c.stats.pts}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ResultModal({ result, home, away, onClose }){
+  const homeScorers = result.scorers.filter(s=>s.clubId===home.id);
+  const awayScorers = result.scorers.filter(s=>s.clubId===away.id);
+  const fmt = (list)=> list.length===0 ? 'Sin goles' : list.map(s=>s.player.name).join(', ');
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-eyebrow">Resultado final</div>
+        <div className="modal-score">
+          <div className="team">{home.name}</div>
+          <div className="score">{result.homeGoals} - {result.awayGoals}</div>
+          <div className="team">{away.name}</div>
+        </div>
+        <div className="scorers">
+          <div><b>{home.name}:</b> {fmt(homeScorers)}</div>
+          <div style={{marginTop:4}}><b>{away.name}:</b> {fmt(awayScorers)}</div>
+        </div>
+        <button className="btn btn-block" onClick={onClose}>Continuar</button>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== APP ===================== */
 
 function App(){
-  const [state, setState] = useState(null);
+  const [game, setGame] = useState(null);
+  const [tab, setTab] = useState('resumen');
+  const [pendingResult, setPendingResult] = useState(null); // {result, home, away}
+  const [loaded, setLoaded] = useState(false);
 
-  function handleCreate({name, city, primary, secondary, pattern, tier}){
-    const tierInfo = TIERS[tier];
-    const yourStrength = randInt(tierInfo.range[0], tierInfo.range[1]);
-    const you = { id: "you", name, city, primary, secondary, pattern, isYou:true, strength: yourStrength };
+  useEffect(()=>{
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(raw) setGame(JSON.parse(raw));
+    }catch(e){ /* ignore corrupt save */ }
+    setLoaded(true);
+  },[]);
 
-    const cpuNames = generateClubNames(15, name);
-    const cpuTeams = cpuNames.map((n, i) => {
-      const spread = tierInfo.spread;
-      const s = Math.min(96, Math.max(22, yourStrength + randInt(-spread, spread)));
-      return { id: "cpu"+i, name: n, isYou:false, strength: s };
-    });
+  useEffect(()=>{
+    if(game) localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+  },[game]);
 
-    const teams = [you, ...cpuTeams];
-    const fixtures = generateRoundRobin(teams.map(t=>t.id));
+  if(!loaded) return null;
 
-    setState({
-      club: { name, city, primary, secondary, pattern, tier, budget: tierInfo.budget },
-      teams, fixtures, resultsByRound: [], currentRound: 0, season: 1, history: []
-    });
+  if(!game){
+    return <Setup onStart={(clubName, managerName, color)=>{
+      setGame(startNewCareer(clubName, managerName, color));
+    }}/>;
   }
 
+  const clubsById = Object.fromEntries(game.clubs.map(c=>[c.id,c]));
+  const userClub = game.clubs.find(c=>c.isUser);
+
+  const handleSimulate = ()=>{
+    const round = game.calendar[game.currentMatchday-1];
+    if(!round) return;
+
+    // deep-clone clubs to mutate safely
+    const clubs = game.clubs.map(c=>({
+      ...c,
+      players: c.players.map(p=>({...p})),
+      stats: {...c.stats},
+      form: [...c.form],
+    }));
+    const clubsByIdMut = Object.fromEntries(clubs.map(c=>[c.id,c]));
+
+    let userResult = null;
+    const newMatches = round.matches.map(m=>{
+      const home = clubsByIdMut[m.homeId], away = clubsByIdMut[m.awayId];
+      const result = simulateMatch(home, away);
+      applyResult(clubs, m, result);
+      if(home.isUser || away.isUser){
+        userResult = { result, home:{...home}, away:{...away} };
+      }
+      return { ...m, played:true, homeGoals:result.homeGoals, awayGoals:result.awayGoals, scorers:result.scorers };
+    });
+
+    const newCalendar = game.calendar.map((r,i)=> i===game.currentMatchday-1 ? {...r, matches:newMatches} : r);
+
+    setGame({
+      ...game,
+      clubs,
+      calendar: newCalendar,
+      currentMatchday: game.currentMatchday + 1,
+    });
+
+    if(userResult) setPendingResult(userResult);
+  };
+
+  const handleReset = ()=>{
+    if(window.confirm('¿Reiniciar la carrera? Se perderá todo el progreso actual.')){
+      localStorage.removeItem(SAVE_KEY);
+      setGame(null);
+      setTab('resumen');
+    }
+  };
+
+  const TABS = [
+    {key:'resumen', label:'Resumen'},
+    {key:'plantilla', label:'Plantilla'},
+    {key:'calendario', label:'Calendario'},
+    {key:'tabla', label:'Clasificación'},
+  ];
+
   return (
-    <div>
-      <div className="masthead">
-        <div>
-          <div className="eyebrow">Carrera Manager · Fase 1</div>
-          <h1>{state ? state.club.name : "Fundá tu club"}</h1>
+    <div className="app">
+      <div className="topbar">
+        <div className="club-id">
+          <Crest club={userClub}/>
+          <div className="club-meta">
+            <div className="club-name">{userClub.name}</div>
+            <div className="manager-name">DT {game.managerName}</div>
+          </div>
         </div>
-        {state && <div className="season-tag">Temporada {state.season}</div>}
+        <div className="topbar-right">
+          <div className="season-tag">Temporada {game.season} · Jornada {Math.min(game.currentMatchday, game.totalMatchdays)}/{game.totalMatchdays}</div>
+          <button className="reset-link" onClick={handleReset}>Reiniciar carrera</button>
+        </div>
       </div>
-      {!state ? <SetupScreen onCreate={handleCreate}/> : <Dashboard state={state} setState={setState}/>}
-      <div className="footnote">Fase 1 — creación de club y simulación de liga. Sin plantilla ni mercado todavía.</div>
+
+      <Ticker game={game} clubsById={clubsById}/>
+
+      <div className="tabs">
+        {TABS.map(t=>(
+          <button key={t.key} className={"tab"+(tab===t.key?' active':'')} onClick={()=>setTab(t.key)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab==='resumen' && <Dashboard game={game} userClub={userClub} clubsById={clubsById} onSimulate={handleSimulate}/>}
+      {tab==='plantilla' && <Squad club={userClub}/>}
+      {tab==='calendario' && <CalendarView game={game} clubsById={clubsById} userClub={userClub}/>}
+      {tab==='tabla' && <TableView clubs={game.clubs} userClub={userClub}/>}
+
+      <p className="footnote">Etapa 1 — motor de temporada y plantilla. Próximas etapas: alineaciones y tácticas, mercado de fichajes, progresión de jugadores entre temporadas.</p>
+
+      {pendingResult && (
+        <ResultModal
+          result={pendingResult.result}
+          home={pendingResult.home}
+          away={pendingResult.away}
+          onClose={()=>setPendingResult(null)}
+        />
+      )}
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
